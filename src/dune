@@ -1,5 +1,5 @@
-(executable
+(library
   (name compiler)
   (libraries core_kernel)
-  (preprocess (pps ppx_deriving.std))
+  (wrapped false)
  )
