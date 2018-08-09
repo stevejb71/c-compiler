@@ -1,6 +1,7 @@
-open OUnit2
-open Lexer
 open Core_kernel
+open Lexer
+open OUnit2
+open Tokens
 
 let print_token = function
 | OPEN_CURLY -> "<OPEN_CURLY>"
@@ -10,7 +11,7 @@ let print_token = function
 | INT_LITERAL -> "<INT_LITERAL>"
 | _ -> "Unknown"
 
-let assert_ok exp (got: (token list, string) Result.t) _ctxt = 
+let assert_ok exp (got: (Tokens.t list, string) Result.t) _ctxt = 
   let got = Result.ok_or_failwith got in
   assert_equal exp got ~printer:(fun xs -> List.map ~f:print_token xs |> String.concat ~sep:",")
 

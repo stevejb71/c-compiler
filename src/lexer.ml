@@ -1,16 +1,6 @@
 open Base
 open Re
-
-type token =
-| OPEN_CURLY
-| CLOSE_CURLY
-| OPEN_ROUND
-| CLOSE_ROUND
-| SEMICOLON
-| KEYWORD_INT
-| KEYWORD_RETURN
-| IDENTIFIER
-| INT_LITERAL
+open Tokens
 
 let compile_tokens =
   let compile1 (str, tok) =
@@ -19,7 +9,7 @@ let compile_tokens =
   in
   List.map ~f:compile1
 
-let token_regexs: (Re.re * token) list = compile_tokens [
+let token_regexs: (Re.re * Tokens.t) list = compile_tokens [
   "\\{", OPEN_CURLY;
   "\\}", CLOSE_CURLY;
   "\\(", OPEN_ROUND;
@@ -37,7 +27,7 @@ let rec next_non_whitespace str pos =
   else next_non_whitespace str (pos+1)
 
 (** Finds the first token in token_regexs that matches str at the given pos, and returns the next pos + the token, in an option. *)
-let match_token (str: string) (pos: int): ((int * token), string) Result.t =
+let match_token (str: string) (pos: int): ((int * Tokens.t), string) Result.t =
   let pos = next_non_whitespace str pos in
   let try1 regex = 
     match Re.exec_opt ~pos regex str with
