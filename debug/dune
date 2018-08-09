@@ -1,0 +1,5 @@
+(executable
+  (name debug)
+  (libraries base compiler)
+  (flags)
+ )
