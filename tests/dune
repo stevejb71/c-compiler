@@ -1,4 +1,5 @@
 (test 
   (name all_tests)
   (libraries oUnit compiler)
+  (flags)
   )
