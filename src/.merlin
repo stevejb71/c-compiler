@@ -20,6 +20,8 @@ B /home/steve/.opam/4.07.0/lib/ppx_hash/runtime-lib
 B /home/steve/.opam/4.07.0/lib/ppx_inline_test/config
 B /home/steve/.opam/4.07.0/lib/ppx_inline_test/runtime-lib
 B /home/steve/.opam/4.07.0/lib/ppx_sexp_conv/runtime-lib
+B /home/steve/.opam/4.07.0/lib/re
+B /home/steve/.opam/4.07.0/lib/seq
 B /home/steve/.opam/4.07.0/lib/sexplib
 B /home/steve/.opam/4.07.0/lib/sexplib0
 B /home/steve/.opam/4.07.0/lib/splittable_random
@@ -49,6 +51,8 @@ S /home/steve/.opam/4.07.0/lib/ppx_hash/runtime-lib
 S /home/steve/.opam/4.07.0/lib/ppx_inline_test/config
 S /home/steve/.opam/4.07.0/lib/ppx_inline_test/runtime-lib
 S /home/steve/.opam/4.07.0/lib/ppx_sexp_conv/runtime-lib
+S /home/steve/.opam/4.07.0/lib/re
+S /home/steve/.opam/4.07.0/lib/seq
 S /home/steve/.opam/4.07.0/lib/sexplib
 S /home/steve/.opam/4.07.0/lib/sexplib0
 S /home/steve/.opam/4.07.0/lib/splittable_random

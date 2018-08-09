@@ -1,3 +1,5 @@
+open Base
+
 type token =
 | OPEN_CURLY
 | CLOSE_CURLY
@@ -9,4 +11,4 @@ type token =
 | IDENTIFIER
 | INT_LITERAL
 
-val lex : string -> token list
+val lex : string -> (token list, string) Result.t

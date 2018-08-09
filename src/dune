@@ -1,5 +1,5 @@
 (library
   (name compiler)
-  (libraries core_kernel)
+  (libraries core_kernel re)
   (wrapped false)
  )

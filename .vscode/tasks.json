@@ -6,7 +6,7 @@
     {
       "label": "build",
       "type": "shell",
-      "command": "dune build src/compiler.exe",
+      "command": "dune runtest",
       "problemMatcher": [
         "$ocamlc"
       ]
