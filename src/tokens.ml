@@ -20,4 +20,14 @@ let print_token = function
 | IDENTIFIER -> "<IDENTIFIER>"
 | INT_LITERAL -> "<INT_LITERAL>"
   
-  
+let eq (t1: t) (t2: t) = match t1, t2 with
+| OPEN_CURLY, OPEN_CURLY -> true
+| CLOSE_CURLY, CLOSE_CURLY -> true
+| OPEN_ROUND, OPEN_ROUND -> true
+| CLOSE_ROUND, CLOSE_ROUND -> true
+| SEMICOLON, SEMICOLON -> true
+| KEYWORD_INT, KEYWORD_INT -> true
+| KEYWORD_RETURN, KEYWORD_RETURN -> true
+| IDENTIFIER, IDENTIFIER -> true
+| INT_LITERAL, INT_LITERAL -> true
+| _ -> false

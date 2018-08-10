@@ -4,10 +4,11 @@ open Tokens
 
 type 'a parser = Tokens.t list -> ((Tokens.t list * 'a), string) Result.t
 
-let parse_token expected tokens =
+let parse_token (expected: Tokens.t) (tokens: Tokens.t list) =
   match List.hd tokens with
-  | Some expected -> Ok (List.tl_exn tokens)
-  | _ -> Error (Printf.sprintf "was expecting %s" (print_token expected))
+  | Some t when Tokens.eq t expected -> Ok (List.tl_exn tokens)
+  | Some t -> Error (Printf.sprintf "was expecting %s but got %s" (print_token expected) (print_token t))
+  | None -> Error "no more tokens"
 
 let parse_exp: exp parser = fun tokens ->
   let open Result.Monad_infix in
