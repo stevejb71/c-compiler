@@ -14,6 +14,6 @@ let reg_to_str = function
 
 let emit_asm (emitter: string -> unit) = function
 | Globl s -> emitter (".globl " ^ s)
-| Label s -> emitter s
-| Movl {x; r} -> emitter (Printf.sprintf "movl $%d %s" x (reg_to_str r))
+| Label s -> emitter (s ^ ":")
+| Movl {x; r} -> emitter (Printf.sprintf "movl $%d, %s" x (reg_to_str r))
 | Ret -> emitter "ret"

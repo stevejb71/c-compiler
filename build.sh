@@ -1,1 +1,1 @@
-dune build src/compiler.a
+dune build app/compiler.exe
