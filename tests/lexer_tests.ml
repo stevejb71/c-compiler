@@ -2,6 +2,7 @@ open Core_kernel
 open Lexer
 open OUnit2
 open Tokens
+open Test_files
 
 let assert_ok exp (got: (Tokens.t list, string) Result.t) _ctxt = 
   let got = Result.ok_or_failwith got in
@@ -11,16 +12,13 @@ let assert_error (exp: string) (got: ('a, string) Result.t) _ctxt =
   let got = Option.value_exn (Result.error got) in
   assert_equal exp got ~printer:Fn.id
 
-let assert_can_lex_file (filename: string) _ctxt =
-  let program = In_channel.read_all filename in
+let assert_can_lex_file filename program =
   match lex program with
   | Ok _ -> ()
-  | Error msg -> failwith ("Failed: " ^ msg)
+  | Error msg -> failwith (Printf.sprintf "Failed on '%s' with msg %s" filename msg)
   
 let assert_can_lex_files_in_folder (foldername: string) _ctxt =
-  let foldername = "../../../tests/" ^ foldername in
-  let c_files = Sys.readdir foldername in
-  Array.iter c_files ~f:(fun name -> assert_can_lex_file (foldername ^ "/" ^ name) _ctxt)
+  for_each_file_in_folder ~foldername ~f:assert_can_lex_file
   
 let lexer_tests = [
   "empty string has no tokens" >::
