@@ -1,6 +1,7 @@
 open Base
 open Re
 open Tokens
+open Functions
 
 let compile_tokens =
   let compile1 (str, tok) =
@@ -9,16 +10,17 @@ let compile_tokens =
   in
   List.map ~f:compile1
 
-let token_regexs: (Re.re * Tokens.t) list = compile_tokens [
-  "\\{", OPEN_CURLY;
-  "\\}", CLOSE_CURLY;
-  "\\(", OPEN_ROUND;
-  "\\)", CLOSE_ROUND;
-  ";", SEMICOLON;
-  "int", KEYWORD_INT;
-  "return", KEYWORD_RETURN;
-  "[a-zA-Z]+", IDENTIFIER;
-  "[0-9]+", INT_LITERAL;
+let token_regexs: (Re.re * Tokens.t list) list = compile_tokens [
+  "\\{", [OPEN_CURLY];
+  "\\}", [CLOSE_CURLY];
+  "\\(", [OPEN_ROUND];
+  "\\)", [CLOSE_ROUND];
+  ";", [SEMICOLON];
+  "int(\\s+)", [KEYWORD_INT];
+  "return;", [KEYWORD_RETURN; SEMICOLON];
+  "return(\\s+)", [KEYWORD_RETURN];
+  "[a-zA-Z]+", [IDENTIFIER];
+  "[0-9]+", [INT_LITERAL];
 ]
 
 let rec next_non_whitespace str pos =
@@ -27,9 +29,9 @@ let rec next_non_whitespace str pos =
   else next_non_whitespace str (pos+1)
 
 (** Finds the first token in token_regexs that matches str at the given pos, and returns the next pos + the token, in an option. *)
-let match_token (str: string) (pos: int): ((int * Tokens.t), string) Result.t =
+let match_token (str: string) (pos: int): ((int * Tokens.t list), string) Result.t =
   let pos = next_non_whitespace str pos in
-  let try1 regex = 
+  let try1 regex =
     match Re.exec_opt ~pos regex str with
     | None -> None
     | Some gs -> 
@@ -65,4 +67,4 @@ let lex program =
     else match match_token program pos with
     | Ok (pos, token) -> go pos (token :: acc)
     | Error msg -> Error msg
-  in go 0 [] |> Result.map ~f:List.rev
+  in go 0 [] |> Result.map ~f:(List.concat >|> List.rev)
