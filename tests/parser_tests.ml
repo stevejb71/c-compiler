@@ -39,9 +39,9 @@ let parser_tests = [
   "empty list is an error" >::
     assert_error "no more tokens" (parse []);
   "parses the stage 1 C function" >::
-    assert_ok {name="main"; body=Return (Const 2)} @@ parse [KEYWORD_INT; IDENTIFIER; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL; SEMICOLON; CLOSE_CURLY];
+    assert_ok {name="main"; body=Return (Const 52)} @@ parse [KEYWORD_INT; IDENTIFIER; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 52; SEMICOLON; CLOSE_CURLY];
   "spots an error if stage 1 C function has badly placed brackets" >::
-    assert_error "was expecting <OPEN_ROUND> but got <OPEN_CURLY>" @@ parse [KEYWORD_INT; IDENTIFIER; OPEN_CURLY; CLOSE_CURLY; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL; SEMICOLON; CLOSE_CURLY];
+    assert_error "was expecting <OPEN_ROUND> but got <OPEN_CURLY>" @@ parse [KEYWORD_INT; IDENTIFIER; OPEN_CURLY; CLOSE_CURLY; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 3; SEMICOLON; CLOSE_CURLY];
   "lexes and parses valid C files" >::
     assert_can_parse_files_in_folder "stage_1/valid";
   "lexes but does not parse invalid C files" >::

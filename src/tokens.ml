@@ -7,7 +7,7 @@ type t =
   | KEYWORD_INT
   | KEYWORD_RETURN
   | IDENTIFIER
-  | INT_LITERAL  
+  | INT_LITERAL of int  
 
 let print_token = function
 | OPEN_CURLY -> "<OPEN_CURLY>"
@@ -18,7 +18,7 @@ let print_token = function
 | KEYWORD_INT -> "<KEYWORD_INT>"
 | KEYWORD_RETURN -> "<KEYWORD_RETURN>"
 | IDENTIFIER -> "<IDENTIFIER>"
-| INT_LITERAL -> "<INT_LITERAL>"
+| INT_LITERAL n -> Printf.sprintf "<INT_LITERAL: %d>" n
   
 let eq (t1: t) (t2: t) = match t1, t2 with
 | OPEN_CURLY, OPEN_CURLY -> true
@@ -29,5 +29,5 @@ let eq (t1: t) (t2: t) = match t1, t2 with
 | KEYWORD_INT, KEYWORD_INT -> true
 | KEYWORD_RETURN, KEYWORD_RETURN -> true
 | IDENTIFIER, IDENTIFIER -> true
-| INT_LITERAL, INT_LITERAL -> true
+| INT_LITERAL n1, INT_LITERAL n2 -> n1 = n2
 | _ -> false

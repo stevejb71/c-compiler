@@ -10,17 +10,28 @@ let compile_tokens =
   in
   List.map ~f:compile1
 
-let token_regexs: (Re.re * Tokens.t list) list = compile_tokens [
-  "\\{", [OPEN_CURLY];
-  "\\}", [CLOSE_CURLY];
-  "\\(", [OPEN_ROUND];
-  "\\)", [CLOSE_ROUND];
-  ";", [SEMICOLON];
-  "int(\\s+)", [KEYWORD_INT];
-  "return;", [KEYWORD_RETURN; SEMICOLON];
-  "return(\\s+)", [KEYWORD_RETURN];
-  "[a-zA-Z]+", [IDENTIFIER];
-  "[0-9]+", [INT_LITERAL];
+type token_maker = string -> int -> int -> (Tokens.t list, string) Result.t
+
+let one a _ _ _ = Ok [a]
+
+let parse_int: token_maker = fun str start finish ->
+  let int_token = String.sub str start (finish - start) in
+  let int_token = 
+    try Ok (Int.of_string int_token) with
+    | _ -> Error ("cannot read int from " ^ int_token) in
+  Result.map int_token ~f:(fun n -> [INT_LITERAL n])
+
+let token_regexs: (Re.re * token_maker) list = compile_tokens [
+  "\\{", one OPEN_CURLY;
+  "\\}", one CLOSE_CURLY;
+  "\\(", one OPEN_ROUND;
+  "\\)", one CLOSE_ROUND;
+  ";", one SEMICOLON;
+  "int(\\s+)", one KEYWORD_INT;
+  "return;", (fun _ _ _ -> Ok [KEYWORD_RETURN; SEMICOLON]);
+  "return(\\s+)", one KEYWORD_RETURN;
+  "[a-zA-Z]+", one IDENTIFIER;
+  "[0-9]+", parse_int;
 ]
 
 let rec next_non_whitespace str pos =
@@ -39,15 +50,18 @@ let match_token (str: string) (pos: int): ((int * Tokens.t list), string) Result
         then Some (Re.Group.stop gs 0)
         else None
   in 
-  let rec find = function
+  let rec find: (Re.re * token_maker) list -> ((int * token_maker), string) Result.t = function
   | [] -> Error (Printf.sprintf "Nothing matches at position %d" pos)
-  | (regex, token) :: tail -> 
+  | (regex, token_maker) :: tail -> 
       match try1 regex with
       | None -> find tail
-      | Some p -> Ok (p, token)
+      | Some p -> Ok (p, token_maker)
       | exception _ -> Error (Printf.sprintf "Failure in regex at %d" pos)
   in
-  find token_regexs
+  let open Result.Monad_infix in
+  find token_regexs >>= fun (end_token, token_maker) -> 
+  token_maker str pos end_token >>= fun t -> 
+  Ok (end_token, t)
 
 let strip_right str =
   if String.is_empty str then str

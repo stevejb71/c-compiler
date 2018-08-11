@@ -10,11 +10,17 @@ let parse_token (expected: Tokens.t) (tokens: Tokens.t list) =
   | Some t -> Error (Printf.sprintf "was expecting %s but got %s" (print_token expected) (print_token t))
   | None -> Error "no more tokens"
 
+let parse_int (tokens: Tokens.t list) =
+  match List.hd tokens with
+  | Some (INT_LITERAL n) -> Ok (n, List.tl_exn tokens)
+  | Some _ -> Error (Printf.sprintf "was expecting int")
+  | None -> Error "no more tokens"
+
 let parse_exp: exp parser = fun tokens ->
   let open Result.Monad_infix in
   tokens |>
-  parse_token INT_LITERAL >>= fun tokens ->
-  Ok (tokens, Const 2)
+  parse_int >>= fun (n, tokens) ->
+  Ok (tokens, Const n)
 
 let parse_return: stmt parser = fun tokens ->
   let open Result.Monad_infix in

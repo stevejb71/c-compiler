@@ -30,15 +30,15 @@ let lexer_tests = [
   "single identifier followed by whitespace produces an IDENTIFIER token" >::
     assert_ok [IDENTIFIER] (lex "somefunc   ");
   "lexes more than one token" >::
-    assert_ok [INT_LITERAL; IDENTIFIER; SEMICOLON] (lex "  7 somefunc  ; ");
+    assert_ok [INT_LITERAL 7; IDENTIFIER; SEMICOLON] (lex "  7 somefunc  ; ");
   "lexes return0 as an identifier, not return, int" >::
-    assert_ok [IDENTIFIER; INT_LITERAL] (lex "return0");
+    assert_ok [IDENTIFIER; INT_LITERAL 0] (lex "return0");
   "lexes return 8 as RETURN + INT" >::
-    assert_ok [KEYWORD_RETURN; INT_LITERAL] (lex "return 8");
+    assert_ok [KEYWORD_RETURN; INT_LITERAL 8] (lex "return 8");
   "lexes return; as RETURN + SEMICOLON" >::
     assert_ok [KEYWORD_RETURN; SEMICOLON] (lex "return;");
   "lexes int8; as IDENTIFIER + INT" >::
-    assert_ok [IDENTIFIER; INT_LITERAL] (lex "int8");
+    assert_ok [IDENTIFIER; INT_LITERAL 8] (lex "int8");
   "reports an error on failing to lex " >::
     assert_error "Nothing matches at position 7" (lex "   doub:le");
   "lexes valid C files" >::
