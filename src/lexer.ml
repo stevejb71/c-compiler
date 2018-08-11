@@ -27,6 +27,9 @@ let token_regexs: (Re.re * token_maker) list = compile_tokens [
   "\\(", one OPEN_ROUND;
   "\\)", one CLOSE_ROUND;
   ";", one SEMICOLON;
+  "-", one NEGATION;
+  "~", one COMPLEMENT;
+  "!", one LOGICAL_NEGATION;
   "int(\\s+)", one KEYWORD_INT;
   "return;", (fun _ _ _ -> Ok [KEYWORD_RETURN; SEMICOLON]);
   "return(\\s+)", one KEYWORD_RETURN;

@@ -41,8 +41,12 @@ let lexer_tests = [
     assert_ok [IDENTIFIER; INT_LITERAL 8] (lex "int8");
   "reports an error on failing to lex " >::
     assert_error "Nothing matches at position 7" (lex "   doub:le");
-  "lexes valid C files" >::
+  "lexes valid C stage 1 files" >::
     assert_can_lex_files_in_folder "stage_1/valid";
-  "lexes invalid C files" >::
+  "lexes invalid C stage 1 files" >::
     assert_can_lex_files_in_folder "stage_1/invalid";
+  "lexes valid C stage 2 files" >::
+    assert_can_lex_files_in_folder "stage_2/valid";
+  "lexes invalid C stage 2 files" >::
+    assert_can_lex_files_in_folder "stage_2/invalid";
 ]
