@@ -34,8 +34,11 @@ let rec codegen_exp emitter asm =
       emit_binary_op e1 e2;
       emitter (IMul (Ecx, Eax))
   | Division (e1, e2) -> 
-      emitter (Movl {x=0; r=Eax});
-      emit_binary_op e2 e1;
+      emitter (Movl {x=0; r=Edx});
+      codegen_exp emitter e2;
+      emitter (Push Rax);
+      codegen_exp emitter e1;
+      emitter (Pop Rcx);
       emitter (IDivl (Ecx, Eax))
 
 let codegen_stmt emitter = function

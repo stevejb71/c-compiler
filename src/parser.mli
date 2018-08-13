@@ -1,3 +1,14 @@
+(* 
+Grammar accepted by this parser (stage 3):
+
+<program> ::= <function>
+<function> ::= "int" <id> "(" ")" "{" <statement> "}"
+<statement> ::= "return" <exp> ";"
+<exp> ::= <term> { ("+" | "-") <term> }
+<term> ::= <factor> { ("*" | "/") <factor> }
+<factor> ::= "(" <exp> ")" | <unary_op> <factor> | <int> 
+*)
+
 open Ast
 open Base
 

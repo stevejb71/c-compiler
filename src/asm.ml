@@ -5,6 +5,7 @@ type register =
 | Rax
 | Ecx
 | Rcx
+| Edx
 | Al
 
 type t =
@@ -28,6 +29,7 @@ let reg_to_str = function
 | Rax -> "%rax"
 | Ecx -> "%ecx"
 | Rcx -> "%rcx"
+| Edx -> "%edx"
 | Al -> "%al"
 
 let op_reg_to_string operand r =

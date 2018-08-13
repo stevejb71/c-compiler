@@ -20,17 +20,17 @@ type fundef = {
 
 type program = fundef
 
+let rec show_exp = function
+| Const n -> Int.to_string n
+| Complement e -> "~" ^ show_exp e
+| Negation e -> "-" ^ show_exp e
+| Logical_Negation e -> "!" ^ show_exp e
+| Addition (e1, e2) -> Printf.sprintf "%s + %s" (show_exp e1) (show_exp e2)
+| Subtraction (e1, e2) -> Printf.sprintf "%s - %s" (show_exp e1) (show_exp e2)
+| Multiplication (e1, e2) -> Printf.sprintf "%s * %s" (show_exp e1) (show_exp e2)
+| Division (e1, e2) -> Printf.sprintf "%s / %s" (show_exp e1) (show_exp e2)
+
 let show_program ({name; body}: program): string = 
-  let rec show_exp = function
-  | Const n -> Int.to_string n
-  | Complement e -> "~" ^ show_exp e
-  | Negation e -> "-" ^ show_exp e
-  | Logical_Negation e -> "!" ^ show_exp e
-  | Addition (e1, e2) -> Printf.sprintf "%s + %s" (show_exp e1) (show_exp e2)
-  | Subtraction (e1, e2) -> Printf.sprintf "%s - %s" (show_exp e1) (show_exp e2)
-  | Multiplication (e1, e2) -> Printf.sprintf "%s * %s" (show_exp e1) (show_exp e2)
-  | Division (e1, e2) -> Printf.sprintf "%s / %s" (show_exp e1) (show_exp e2)
-  in
   let show_stmt = function
   | Return exp -> Printf.sprintf "return %s" (show_exp exp)
   in

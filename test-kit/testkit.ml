@@ -3,6 +3,7 @@ open Core_kernel
 let foldernames = [
   "tests/stage_1/valid";
   "tests/stage_2/valid";
+  "tests/stage_3/valid";
 ]
 
 type outputs = {

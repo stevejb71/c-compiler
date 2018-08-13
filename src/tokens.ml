@@ -51,3 +51,7 @@ let eq (t1: t) (t2: t) = match t1, t2 with
 | MULTIPLICATION, MULTIPLICATION -> true
 | DIVISION, DIVISION -> true
 | _ -> false
+
+let is_unary_op = function
+| NEGATION | LOGICAL_NEGATION | COMPLEMENT -> true
+| _ -> false

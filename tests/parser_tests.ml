@@ -14,10 +14,14 @@ let assert_ok_exp exp got _ctxt =
   let got = snd (Result.ok_or_failwith got) in
   let rec go exp got = 
     match exp, got with
-    | Const ne, Const ng -> assert_equal ne ng
-    | Complement e1, Complement e2 -> go e1 e2
-    | Negation e1, Negation e2 -> go e1 e2
-    | _ -> failwith "test assertion not implemented"
+    | Const e, Const g -> assert_equal e g
+    | Complement e, Complement g -> go e g
+    | Negation e, Negation g -> go e g
+    | Addition (e1, e2), Addition (g1, g2) -> go e1 g1; go e2 g2
+    | Subtraction (e1, e2), Subtraction (g1, g2) -> go e1 g1; go e2 g2
+    | Multiplication (e1, e2), Multiplication (g1, g2) -> go e1 g1; go e2 g2
+    | Division (e1, e2), Division (g1, g2) -> go e1 g1; go e2 g2
+    | _, _ -> failwith (Printf.sprintf "expected %s but got %s" (show_exp exp) (show_exp got))
   in go exp got
   
 let assert_error (exp: string) (got: ('a, string) Result.t) _ctxt = 
@@ -45,19 +49,36 @@ let assert_can_parse_files_in_folder (foldername: string) _ctxt =
 let assert_fails_to_parse_files_in_folder (foldername: string) _ctxt =
   for_each_file_in_folder ~foldername ~f:assert_fails_to_parse_file
     
-let parser_tests = [
-  "empty list is an error" >::
-    assert_error "no more tokens" (parse []);
-  "parses the stage 1 C function" >::
-    assert_ok {name="main"; body=Return (Const 52)} @@ parse [KEYWORD_INT; IDENTIFIER; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 52; SEMICOLON; CLOSE_CURLY];
-  "spots an error if stage 1 C function has badly placed brackets" >::
-    assert_error "was expecting <OPEN_ROUND> but got <OPEN_CURLY>" @@ parse [KEYWORD_INT; IDENTIFIER; OPEN_CURLY; CLOSE_CURLY; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 3; SEMICOLON; CLOSE_CURLY];
+let exp_parser_tests = [
   "parse_exp parses an int expression" >::
     assert_ok_exp (Const 42) @@ parse_exp [INT_LITERAL 42];
   "parse_exp parses a bitwise negated int expression" >::
     assert_ok_exp (Complement (Const 42)) @@ parse_exp [COMPLEMENT; INT_LITERAL 42];
   "parse_exp parses a negated int expression" >::
     assert_ok_exp (Negation (Const 5)) @@ parse_exp [NEGATION; INT_LITERAL 5];
+  "parse_exp parses an addition" >::
+    assert_ok_exp (Addition (Const 12, Const 5)) @@ parse_exp [INT_LITERAL 12; ADDITION; INT_LITERAL 5];
+  "parse_exp parses a multiplication" >::
+    assert_ok_exp (Multiplication (Const 12, Const 5)) @@ parse_exp [INT_LITERAL 12; MULTIPLICATION; INT_LITERAL 5];
+  "parse_exp parses a subtraction using the NEGATION symbol" >::
+    assert_ok_exp (Subtraction (Const 12, Const 5)) @@ parse_exp [INT_LITERAL 12; NEGATION; INT_LITERAL 5];
+  "parse_exp parses a division" >::
+    assert_ok_exp (Division (Const 12, Const 5)) @@ parse_exp [INT_LITERAL 12; DIVISION; INT_LITERAL 5];
+  "parse_exp parses multiplication with precedence over addition" >::
+    assert_ok_exp (Addition ((Const 1),(Multiplication (Const 12, Const 5)))) @@ parse_exp [INT_LITERAL 1; ADDITION; INT_LITERAL 12; MULTIPLICATION; INT_LITERAL 5];
+  "parse_exp parses addition in brackets with precedence over multiplication" >::
+    assert_ok_exp (Multiplication (Addition (Const 1 ,Const 12), Const 5)) @@ parse_exp [OPEN_ROUND; INT_LITERAL 1; ADDITION; INT_LITERAL 12; CLOSE_ROUND; MULTIPLICATION; INT_LITERAL 5];
+  "parse_exp parses subtraction left associatively" >::
+    assert_ok_exp (Subtraction (Subtraction (Const 1, Const 2), Const 3)) @@ parse_exp [INT_LITERAL 1; NEGATION; INT_LITERAL 2; NEGATION; INT_LITERAL 3];
+]
+  
+let general_parser_tests = [
+  "empty list is an error" >::
+    assert_error "no more tokens" (parse []);
+  "parses the stage 1 C function" >::
+    assert_ok {name="main"; body=Return (Const 52)} @@ parse [KEYWORD_INT; IDENTIFIER; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 52; SEMICOLON; CLOSE_CURLY];
+  "spots an error if stage 1 C function has badly placed brackets" >::
+    assert_error "was expecting <OPEN_ROUND> but got <OPEN_CURLY>" @@ parse [KEYWORD_INT; IDENTIFIER; OPEN_CURLY; CLOSE_CURLY; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 3; SEMICOLON; CLOSE_CURLY];
   "lexes and parses valid stage 1 C files" >::
     assert_can_parse_files_in_folder "stage_1/valid";
   "lexes but does not parse invalid stage 1 C files" >::
@@ -66,4 +87,10 @@ let parser_tests = [
     assert_can_parse_files_in_folder "stage_2/valid";
   "lexes but does not parse invalid stage 2 C files" >::
     assert_fails_to_parse_files_in_folder "stage_2/invalid";
+  "lexes and parses valid stage 3 C files" >::
+    assert_can_parse_files_in_folder "stage_3/valid";
+  "lexes but does not parse invalid stage 3 C files" >::
+    assert_fails_to_parse_files_in_folder "stage_3/invalid";
 ]
+
+let parser_tests = List.concat [exp_parser_tests; general_parser_tests]
