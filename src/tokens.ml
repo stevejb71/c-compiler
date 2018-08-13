@@ -13,6 +13,9 @@ type t =
   | NEGATION
   | LOGICAL_NEGATION
   | COMPLEMENT
+  | ADDITION
+  | MULTIPLICATION
+  | DIVISION
 
 let print_token = function
 | OPEN_CURLY -> "<OPEN_CURLY>"
@@ -27,6 +30,9 @@ let print_token = function
 | NEGATION -> "<NEGATION>"
 | LOGICAL_NEGATION -> "<LOGICAL_NEGATION>"
 | COMPLEMENT -> "<COMPLEMENT>"
+| ADDITION -> "<ADDITION>"
+| MULTIPLICATION -> "<MULTIPLICATION>"
+| DIVISION -> "<DIVISION>"
   
 let eq (t1: t) (t2: t) = match t1, t2 with
 | OPEN_CURLY, OPEN_CURLY -> true
@@ -41,4 +47,7 @@ let eq (t1: t) (t2: t) = match t1, t2 with
 | NEGATION, NEGATION -> true
 | LOGICAL_NEGATION, LOGICAL_NEGATION -> true
 | COMPLEMENT, COMPLEMENT -> true
+| ADDITION, ADDITION -> true
+| MULTIPLICATION, MULTIPLICATION -> true
+| DIVISION, DIVISION -> true
 | _ -> false
