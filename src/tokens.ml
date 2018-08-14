@@ -16,6 +16,14 @@ type t =
   | ADDITION
   | MULTIPLICATION
   | DIVISION
+  | LOGICAL_AND
+  | LOGICAL_OR
+  | EQUAL
+  | NOT_EQUAL
+  | LESS_THAN
+  | LESS_THAN_OR_EQUAL
+  | GREATER_THAN
+  | GREATER_THAN_OR_EQUAL
 
 let print_token = function
 | OPEN_CURLY -> "<OPEN_CURLY>"
@@ -33,6 +41,14 @@ let print_token = function
 | ADDITION -> "<ADDITION>"
 | MULTIPLICATION -> "<MULTIPLICATION>"
 | DIVISION -> "<DIVISION>"
+| LOGICAL_AND -> "<LOGICAL_AND>"
+| LOGICAL_OR -> "<LOGICAL_OR>"
+| EQUAL -> "<EQUAL>"
+| NOT_EQUAL -> "<NOT_EQUAL>"
+| LESS_THAN -> "<LESS_THAN>"
+| LESS_THAN_OR_EQUAL -> "<LESS_THAN_OR_EQUAL>"
+| GREATER_THAN -> "<GREATER_THAN>"
+| GREATER_THAN_OR_EQUAL -> "<GREATER_THAN_OR_EQUAL>"
   
 let eq (t1: t) (t2: t) = match t1, t2 with
 | OPEN_CURLY, OPEN_CURLY -> true
@@ -49,7 +65,14 @@ let eq (t1: t) (t2: t) = match t1, t2 with
 | COMPLEMENT, COMPLEMENT -> true
 | ADDITION, ADDITION -> true
 | MULTIPLICATION, MULTIPLICATION -> true
-| DIVISION, DIVISION -> true
+| LOGICAL_AND, LOGICAL_AND -> true
+| LOGICAL_OR, LOGICAL_OR -> true
+| EQUAL, EQUAL -> true
+| NOT_EQUAL, NOT_EQUAL -> true
+| LESS_THAN, LESS_THAN -> true
+| LESS_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL -> true
+| GREATER_THAN, GREATER_THAN -> true
+| GREATER_THAN_OR_EQUAL, GREATER_THAN_OR_EQUAL -> true
 | _ -> false
 
 let is_unary_op = function
