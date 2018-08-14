@@ -4,9 +4,24 @@ open Ast
 
 type emitter = (Asm.t -> unit)
 
+let rec codegen_exp emitter = function
+| Const x -> 
+    emitter (Movl {x; r=Eax})
+| Complement e -> 
+    codegen_exp emitter e;
+    emitter (Not Eax)
+| Negation e -> 
+    codegen_exp emitter e;
+    emitter (Neg Eax)
+| Logical_Negation e -> 
+    codegen_exp emitter e;
+    emitter (Cmpl {x=0; r=Eax});
+    emitter (Movl {x=0; r=Eax});
+    emitter (Sete Al)
+
 let codegen_stmt emitter = function
-| Return (Const x) -> 
-    emitter (Movl {x; r=Eax});
+| Return e -> 
+    codegen_exp emitter e;
     emitter Ret
 
 let codegen_fundef emitter {name; body} =

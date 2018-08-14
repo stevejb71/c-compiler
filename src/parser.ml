@@ -2,7 +2,7 @@ open Ast
 open Base
 open Tokens
 
-type 'a parser = Tokens.t list -> ((Tokens.t list * 'a), string) Result.t
+type 'a tokens_parser = Tokens.t list -> ((Tokens.t list * 'a), string) Result.t
 
 let parse_token (expected: Tokens.t) (tokens: Tokens.t list) =
   match List.hd tokens with
@@ -10,33 +10,37 @@ let parse_token (expected: Tokens.t) (tokens: Tokens.t list) =
   | Some t -> Error (Printf.sprintf "was expecting %s but got %s" (print_token expected) (print_token t))
   | None -> Error "no more tokens"
 
-let parse_int (tokens: Tokens.t list) =
+let rec parse_exp: exp tokens_parser = fun tokens ->
+  let open Result.Monad_infix in
   match List.hd tokens with
-  | Some (INT_LITERAL n) -> Ok (n, List.tl_exn tokens)
-  | Some _ -> Error (Printf.sprintf "was expecting int")
+  | Some COMPLEMENT -> 
+      parse_exp  (List.tl_exn tokens) >>| fun (tokens, exp) ->
+      (tokens, Complement exp)
+  | Some NEGATION -> 
+      parse_exp  (List.tl_exn tokens) >>| fun (tokens, exp) ->
+      (tokens, Negation exp)
+  | Some LOGICAL_NEGATION -> 
+      parse_exp  (List.tl_exn tokens) >>| fun (tokens, exp) ->
+      (tokens, Logical_Negation exp)
+  | Some (INT_LITERAL n) -> Ok (List.tl_exn tokens, Const n)
+  | Some t -> Error (Printf.sprintf "%s is not an expression" (print_token t))
   | None -> Error "no more tokens"
 
-let parse_exp: exp parser = fun tokens ->
-  let open Result.Monad_infix in
-  tokens |>
-  parse_int >>= fun (n, tokens) ->
-  Ok (tokens, Const n)
-
-let parse_return: stmt parser = fun tokens ->
+let parse_return: stmt tokens_parser = fun tokens ->
   let open Result.Monad_infix in
   tokens |>
   parse_token KEYWORD_RETURN >>=
-  parse_exp >>= fun (tokens, exp) ->
-  Ok (tokens, Return exp)
+  parse_exp >>| fun (tokens, exp) ->
+  (tokens, Return exp)
 
-let parse_stmt: stmt parser = fun tokens -> 
+let parse_stmt: stmt tokens_parser = fun tokens -> 
   let open Result.Monad_infix in
   tokens |>
   parse_return >>= fun (tokens, ret) ->
-  parse_token SEMICOLON tokens >>= fun tokens ->
-  Ok (tokens, ret)
+  parse_token SEMICOLON tokens >>| fun tokens ->
+  (tokens, ret)
 
-let parse_fundef: fundef parser = fun tokens -> 
+let parse_fundef: fundef tokens_parser = fun tokens -> 
   let open Result.Monad_infix in
   tokens |>
   parse_token KEYWORD_INT >>=
@@ -45,8 +49,8 @@ let parse_fundef: fundef parser = fun tokens ->
   parse_token CLOSE_ROUND >>=
   parse_token OPEN_CURLY >>=
   parse_stmt >>= fun (tokens, stmt) ->
-  parse_token CLOSE_CURLY tokens >>= fun tokens -> 
-  Ok (tokens, {name = "main"; body = stmt})
+  parse_token CLOSE_CURLY tokens >>| fun tokens -> 
+  (tokens, {name = "main"; body = stmt})
 
 let parse tokens = 
   let open Result.Monad_infix in
