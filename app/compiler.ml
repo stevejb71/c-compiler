@@ -1,5 +1,5 @@
 open Core_kernel
-open Asm
+open Asm_writer
 open Lexer
 open Parser
 open Codegen
