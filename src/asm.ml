@@ -7,6 +7,7 @@ type register =
 | Rcx
 | Edx
 | Al
+| Cl
 
 type t =
 | Globl of string
@@ -17,12 +18,15 @@ type t =
 | Not of register
 | Cmpl of (int * register)
 | Sete of register
+| Setne of register
 | Push of register
 | Pop of register
 | Addl of (register * register)
 | Subl of (register * register)
-| IMul of  (register * register)
-| IDivl of  (register * register)
+| IMul of (register * register)
+| IDivl of (register * register)
+| Andb of (register * register)
+| Orl of (register * register)
 
 let reg_to_str = function
 | Eax -> "%eax"
@@ -31,6 +35,7 @@ let reg_to_str = function
 | Rcx -> "%rcx"
 | Edx -> "%edx"
 | Al -> "%al"
+| Cl -> "%cl"
 
 let op_reg_to_string operand r =
   Printf.sprintf "%s %s" operand (reg_to_str r)
@@ -47,11 +52,14 @@ let asm_to_string = function
 | Not r -> op_reg_to_string "not" r
 | Cmpl (x, r) -> Printf.sprintf "cmpl $%d, %s" x (reg_to_str r)
 | Sete r -> op_reg_to_string "sete" r
+| Setne r -> op_reg_to_string "setne" r
 | Addl rs -> binary_op_to_string "addl" rs
 | Subl rs -> binary_op_to_string "subl" rs
 | IMul rs -> binary_op_to_string "imul" rs
 | IDivl rs -> binary_op_to_string "idivl" rs
 | Push r -> op_reg_to_string "push" r
 | Pop r -> op_reg_to_string "pop" r
+| Orl rs -> binary_op_to_string "orl" rs
+| Andb rs -> binary_op_to_string "andb" rs
 
 let emit_asm (emitter: string -> unit) asm = emitter (asm_to_string asm)
