@@ -16,23 +16,100 @@ let unary_op_ast exp = function
 | LOGICAL_NEGATION -> Logical_Negation exp
 | _ -> failwith "bug"
 
-let rec parse_factor: exp tokens_parser = fun tokens ->
+let rec parse_exp: exp tokens_parser = fun tokens ->
   let open Result.Monad_infix in
-  match List.hd tokens with
-  | Some t when Tokens.eq t OPEN_ROUND ->
-      tokens |>
-      parse_token OPEN_ROUND >>=
-      parse_exp >>= fun (tokens, exp) ->
-      parse_token CLOSE_ROUND tokens >>| fun tokens ->
-      (tokens, exp)
-  | Some t when is_unary_op t ->
+  let rec parse_logical_and_exps exp: exp tokens_parser = fun tokens ->
+    match List.hd tokens with
+    | Some LOGICAL_OR -> 
       List.tl_exn tokens |>
-      parse_factor >>| fun (tokens, exp) ->
-      (tokens, unary_op_ast exp t)
-  | Some (INT_LITERAL n) ->
-      Ok (List.tl_exn tokens, Const n)
-  | Some _ -> Error "parser error"
-  | _ -> Error "no more tokens"
+      parse_logical_and_exp >>= fun (tokens, e2) ->
+      parse_logical_and_exps (Logical_Or (exp, e2)) tokens
+    | _ -> Ok (tokens, exp)
+  in
+  tokens |>
+  parse_logical_and_exp >>= fun (tokens, e1) ->
+  parse_logical_and_exps e1 tokens >>| fun (tokens, e) ->
+  (tokens, e)
+
+and parse_logical_and_exp: exp tokens_parser = fun tokens ->
+  let open Result.Monad_infix in
+  let rec parse_equality_exps exp: exp tokens_parser = fun tokens ->
+    match List.hd tokens with
+    | Some LOGICAL_AND -> 
+      List.tl_exn tokens |>
+      parse_equality_exp >>= fun (tokens, e2) ->
+      parse_equality_exps (Logical_And (exp, e2)) tokens
+    | _ -> Ok (tokens, exp)
+  in
+  tokens |>
+  parse_equality_exp >>= fun (tokens, e1) ->
+  parse_equality_exps e1 tokens >>| fun (tokens, e) ->
+  (tokens, e)
+
+and parse_equality_exp = fun tokens ->
+  let open Result.Monad_infix in
+  let rec parse_relational_exps exp: exp tokens_parser = fun tokens ->
+    match List.hd tokens with
+    | Some EQUAL -> 
+      List.tl_exn tokens |>
+      parse_relational_exp >>= fun (tokens, e2) ->
+      parse_relational_exps (Equality (exp, e2)) tokens
+    | Some NOT_EQUAL -> 
+      List.tl_exn tokens |>
+      parse_relational_exp >>= fun (tokens, e2) ->
+      parse_relational_exps (Inequality (exp, e2)) tokens
+    | _ -> Ok (tokens, exp)
+  in
+  tokens |>
+  parse_relational_exp >>= fun (tokens, e1) ->
+  parse_relational_exps e1 tokens >>| fun (tokens, e) ->
+  (tokens, e)
+
+and parse_relational_exp = fun tokens ->
+  let open Result.Monad_infix in
+  let rec parse_additive_exps exp: exp tokens_parser = fun tokens ->
+    match List.hd tokens with
+    | Some LESS_THAN -> 
+      List.tl_exn tokens |>
+      parse_additive_exp >>= fun (tokens, e2) ->
+      parse_additive_exps (LessThan (exp, e2)) tokens
+    | Some GREATER_THAN -> 
+      List.tl_exn tokens |>
+      parse_additive_exp >>= fun (tokens, e2) ->
+      parse_additive_exps (GreaterThan (exp, e2)) tokens
+    | Some LESS_THAN_OR_EQUAL -> 
+      List.tl_exn tokens |>
+      parse_additive_exp >>= fun (tokens, e2) ->
+      parse_additive_exps (LessThanOrEqual (exp, e2)) tokens
+    | Some GREATER_THAN_OR_EQUAL -> 
+      List.tl_exn tokens |>
+      parse_additive_exp >>= fun (tokens, e2) ->
+      parse_additive_exps (GreaterThanOrEqual (exp, e2)) tokens
+    | _ -> Ok (tokens, exp)
+  in
+  tokens |>
+  parse_additive_exp >>= fun (tokens, e1) ->
+  parse_additive_exps e1 tokens >>| fun (tokens, e) ->
+  (tokens, e)
+
+and parse_additive_exp: exp tokens_parser = fun tokens ->
+  let open Result.Monad_infix in
+  let rec parse_terms exp: exp tokens_parser = fun tokens ->
+    match List.hd tokens with
+    | Some ADDITION -> 
+      List.tl_exn tokens |>
+      parse_term >>= fun (tokens, e2) ->
+      parse_terms (Addition (exp, e2)) tokens
+    | Some NEGATION -> 
+      List.tl_exn tokens |>
+      parse_term >>= fun (tokens, e2) ->
+      parse_terms (Subtraction (exp, e2)) tokens
+    | _ -> Ok (tokens, exp)
+  in
+  tokens |>
+  parse_term >>= fun (tokens, e1) ->
+  parse_terms e1 tokens >>| fun (tokens, e) ->
+  (tokens, e)
 
 and parse_term: exp tokens_parser = fun tokens ->
   let open Result.Monad_infix in
@@ -53,24 +130,23 @@ and parse_term: exp tokens_parser = fun tokens ->
   parse_factors e1 tokens >>| fun (tokens, e) ->
   (tokens, e)
 
-and parse_exp: exp tokens_parser = fun tokens ->
+and parse_factor: exp tokens_parser = fun tokens ->
   let open Result.Monad_infix in
-  let rec parse_terms exp: exp tokens_parser = fun tokens ->
-    match List.hd tokens with
-    | Some ADDITION -> 
+  match List.hd tokens with
+  | Some t when Tokens.eq t OPEN_ROUND ->
+      tokens |>
+      parse_token OPEN_ROUND >>=
+      parse_exp >>= fun (tokens, exp) ->
+      parse_token CLOSE_ROUND tokens >>| fun tokens ->
+      (tokens, exp)
+  | Some t when is_unary_op t ->
       List.tl_exn tokens |>
-      parse_term >>= fun (tokens, e2) ->
-      parse_terms (Addition (exp, e2)) tokens
-    | Some NEGATION -> 
-      List.tl_exn tokens |>
-      parse_term >>= fun (tokens, e2) ->
-      parse_terms (Subtraction (exp, e2)) tokens
-    | _ -> Ok (tokens, exp)
-  in
-  tokens |>
-  parse_term >>= fun (tokens, e1) ->
-  parse_terms e1 tokens >>| fun (tokens, e) ->
-  (tokens, e)
+      parse_factor >>| fun (tokens, exp) ->
+      (tokens, unary_op_ast exp t)
+  | Some (INT_LITERAL n) ->
+      Ok (List.tl_exn tokens, Const n)
+  | Some _ -> Error "parser error"
+  | _ -> Error "no more tokens"
 
 let parse_return: stmt tokens_parser = fun tokens ->
   let open Result.Monad_infix in

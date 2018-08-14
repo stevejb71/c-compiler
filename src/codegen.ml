@@ -71,7 +71,7 @@ let rec codegen_exp emitter asm =
       codegen_exp emitter e1;
       emitter (Push Rax);
       codegen_exp emitter e2;
-      emitter (Push Rcx);
+      emitter (Pop Rcx);
       emitter (Cmpl (I 0, Ecx));
       emitter (Setne Cl);
       emitter (Cmpl (I 0, Eax));
@@ -82,7 +82,7 @@ let rec codegen_exp emitter asm =
       codegen_exp emitter e1;
       emitter (Push Rax);
       codegen_exp emitter e2;
-      emitter (Push Rcx);
+      emitter (Pop Rcx);
       emitter (Orl (Ecx, Eax));
       emitter (Movl (0, Eax));
       emitter (Setne Al)

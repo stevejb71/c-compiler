@@ -21,6 +21,14 @@ let assert_ok_exp exp got _ctxt =
     | Subtraction (e1, e2), Subtraction (g1, g2) -> go e1 g1; go e2 g2
     | Multiplication (e1, e2), Multiplication (g1, g2) -> go e1 g1; go e2 g2
     | Division (e1, e2), Division (g1, g2) -> go e1 g1; go e2 g2
+    | Logical_Or (e1, e2), Logical_Or (g1, g2) -> go e1 g1; go e2 g2
+    | Logical_And (e1, e2), Logical_And (g1, g2) -> go e1 g1; go e2 g2
+    | Equality (e1, e2), Equality (g1, g2) -> go e1 g1; go e2 g2
+    | Inequality (e1, e2), Inequality (g1, g2) -> go e1 g1; go e2 g2
+    | LessThan (e1, e2), LessThan (g1, g2) -> go e1 g1; go e2 g2
+    | LessThanOrEqual (e1, e2), LessThanOrEqual (g1, g2) -> go e1 g1; go e2 g2
+    | GreaterThan (e1, e2), GreaterThan (g1, g2) -> go e1 g1; go e2 g2
+    | GreaterThanOrEqual (e1, e2), GreaterThanOrEqual (g1, g2) -> go e1 g1; go e2 g2
     | _, _ -> failwith (Printf.sprintf "expected %s but got %s" (show_exp exp) (show_exp got))
   in go exp got
   
@@ -70,6 +78,8 @@ let exp_parser_tests = [
     assert_ok_exp (Multiplication (Addition (Const 1 ,Const 12), Const 5)) @@ parse_exp [OPEN_ROUND; INT_LITERAL 1; ADDITION; INT_LITERAL 12; CLOSE_ROUND; MULTIPLICATION; INT_LITERAL 5];
   "parse_exp parses subtraction left associatively" >::
     assert_ok_exp (Subtraction (Subtraction (Const 1, Const 2), Const 3)) @@ parse_exp [INT_LITERAL 1; NEGATION; INT_LITERAL 2; NEGATION; INT_LITERAL 3];
+  "parse_exp parses || with lower precedence than &&" >::
+    assert_ok_exp (Logical_Or (Const 12, Logical_And (Const 5, Const 7))) @@ parse_exp [INT_LITERAL 12; LOGICAL_OR; INT_LITERAL 5; LOGICAL_AND; INT_LITERAL 7];
 ]
   
 let general_parser_tests = [
@@ -91,6 +101,10 @@ let general_parser_tests = [
     assert_can_parse_files_in_folder "stage_3/valid";
   "lexes but does not parse invalid stage 3 C files" >::
     assert_fails_to_parse_files_in_folder "stage_3/invalid";
+  "lexes and parses valid stage 4 C files" >::
+    assert_can_parse_files_in_folder "stage_4/valid";
+  "lexes but does not parse invalid stage 4 C files" >::
+    assert_fails_to_parse_files_in_folder "stage_4/invalid";
 ]
 
 let parser_tests = List.concat [exp_parser_tests; general_parser_tests]

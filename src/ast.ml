@@ -31,7 +31,7 @@ type program = fundef
 
 let rec show_exp e = 
   let show_binary_exp op e1 e2 =
-    Printf.sprintf "%s %s %s" op (show_exp e1) (show_exp e2)
+    Printf.sprintf "%s %s %s" (show_exp e1) op (show_exp e2)
   in
   match e with
   | Const n -> Int.to_string n
