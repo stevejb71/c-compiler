@@ -13,6 +13,10 @@ type register64 =
 | Rax
 | Rcx
 
+type operand32 =
+| I of int
+| R of register32
+
 type t =
 | Globl of string
 | Label of string
@@ -20,9 +24,13 @@ type t =
 | Ret
 | Neg of register32
 | Not of register32
-| Cmpl of (int * register32)
+| Cmpl of (operand32 * register32)
 | Sete of register8
 | Setne of register8
+| Setl of register8
+| Setg of register8
+| Setle of register8
+| Setge of register8
 | Push of register64
 | Pop of register64
 | Addl of (register32 * register32)
@@ -50,6 +58,10 @@ let op_reg_to_string reg_to_str operand r  =
 
 let binary_op_to_string reg_to_str operand (l, r) =
   Printf.sprintf "%s %s,%s" operand (reg_to_str l) (reg_to_str r)
+
+let operand32_to_str = function
+| I n -> Int.to_string n
+| R r -> reg32_to_str r
   
 let asm_to_string = function
 | Globl s -> ".globl " ^ s
@@ -58,9 +70,13 @@ let asm_to_string = function
 | Ret -> "ret"
 | Neg r -> op_reg_to_string reg32_to_str "neg" r
 | Not r -> op_reg_to_string reg32_to_str "not" r
-| Cmpl (x, r) -> Printf.sprintf "cmpl $%d, %s" x (reg32_to_str r)
+| Cmpl (op, r) -> Printf.sprintf "cmpl $%s, %s" (operand32_to_str op) (reg32_to_str r)
 | Sete r -> op_reg_to_string reg8_to_str "sete" r
 | Setne r -> op_reg_to_string reg8_to_str "setne" r
+| Setl r -> op_reg_to_string reg8_to_str "setl" r
+| Setg r -> op_reg_to_string reg8_to_str "setg" r
+| Setle r -> op_reg_to_string reg8_to_str "setle" r
+| Setge r -> op_reg_to_string reg8_to_str "setge" r
 | Addl rs -> binary_op_to_string reg32_to_str "addl" rs
 | Subl rs -> binary_op_to_string reg32_to_str "subl" rs
 | IMul rs -> binary_op_to_string reg32_to_str "imul" rs
