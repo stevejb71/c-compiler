@@ -30,6 +30,9 @@ let token_regexs: (Re.re * token_maker) list = compile_tokens [
   "-", one NEGATION;
   "~", one COMPLEMENT;
   "!", one LOGICAL_NEGATION;
+  "\\+", one ADDITION;
+  "\\*", one MULTIPLICATION;
+  "/", one DIVISION;
   "int(\\s+)", one KEYWORD_INT;
   "return;", (fun _ _ _ -> Ok [KEYWORD_RETURN; SEMICOLON]);
   "return(\\s+)", one KEYWORD_RETURN;
