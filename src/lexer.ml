@@ -29,10 +29,18 @@ let token_regexs: (Re.re * token_maker) list = compile_tokens [
   ";", one SEMICOLON;
   "-", one NEGATION;
   "~", one COMPLEMENT;
+  "!=", one NOT_EQUAL;
   "!", one LOGICAL_NEGATION;
   "\\+", one ADDITION;
   "\\*", one MULTIPLICATION;
   "/", one DIVISION;
+  "&&", one LOGICAL_AND;
+  "\\|\\|", one LOGICAL_OR;
+  "==", one EQUAL;
+  "<=", one LESS_THAN_OR_EQUAL;
+  "<", one LESS_THAN;
+  ">=", one GREATER_THAN_OR_EQUAL;
+  ">", one GREATER_THAN;
   "int(\\s+)", one KEYWORD_INT;
   "return;", (fun _ _ _ -> Ok [KEYWORD_RETURN; SEMICOLON]);
   "return(\\s+)", one KEYWORD_RETURN;
@@ -44,6 +52,10 @@ let rec next_non_whitespace str pos =
   if pos = String.length str || not (Char.is_whitespace str.[pos])
   then pos
   else next_non_whitespace str (pos+1)
+
+let safe_substr str ~pos ~len =
+  let len = min len (String.length str - pos) in
+  String.sub str ~pos ~len
 
 (** Finds the first token in token_regexs that matches str at the given pos, and returns the next pos + the token, in an option. *)
 let match_token (str: string) (pos: int): ((int * Tokens.t list), string) Result.t =
@@ -57,7 +69,7 @@ let match_token (str: string) (pos: int): ((int * Tokens.t list), string) Result
         else None
   in 
   let rec find: (Re.re * token_maker) list -> ((int * token_maker), string) Result.t = function
-  | [] -> Error (Printf.sprintf "Nothing matches at position %d" pos)
+  | [] -> Error (Printf.sprintf "No lexer token matching \"%s\" at position %d" (safe_substr str ~pos ~len:5) pos)
   | (regex, token_maker) :: tail -> 
       match try1 regex with
       | None -> find tail

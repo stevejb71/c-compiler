@@ -12,15 +12,15 @@ let assert_error (exp: string) (got: ('a, string) Result.t) _ctxt =
   let got = Option.value_exn (Result.error got) in
   assert_equal exp got ~printer:Fn.id
 
-let assert_can_lex_file filename program =
+let assert_can_lex_file foldername filename program =
   match lex program with
   | Ok _ -> ()
-  | Error msg -> failwith (Printf.sprintf "Failed on '%s' with msg %s" filename msg)
+  | Error msg -> failwith (Printf.sprintf "Failed on '%s/%s' with msg %s" foldername filename msg)
   
 let assert_can_lex_files_in_folder (foldername: string) _ctxt =
-  for_each_file_in_folder ~foldername ~f:assert_can_lex_file
+  for_each_file_in_folder ~foldername ~f:(assert_can_lex_file foldername)
   
-let lexer_tests = [
+let lexer_general_tests = [
   "empty string has no tokens" >::
     assert_ok [] (lex "");
   "single open curly bracket produces an OPEN_CURLY token" >::
@@ -40,9 +40,16 @@ let lexer_tests = [
   "lexes int8; as IDENTIFIER + INT" >::
     assert_ok [IDENTIFIER; INT_LITERAL 8] (lex "int8");
   "reports an error on failing to lex " >::
-    assert_error "Nothing matches at position 7" (lex "   doub:le");
+    assert_error "No lexer token matching \":le\" at position 7" (lex "   doub:le");
   "lexes addition, multiplication, and division tokens" >::
     assert_ok [ADDITION; MULTIPLICATION; DIVISION] (lex "+ * /");
+  "lexes stage 4 tokens" >::
+    assert_ok 
+      [LOGICAL_AND; LOGICAL_OR; EQUAL; LESS_THAN; GREATER_THAN; LESS_THAN_OR_EQUAL; GREATER_THAN_OR_EQUAL; NOT_EQUAL]
+      (lex "&& || == < > <= >= !=");
+]
+
+let lexer_file_tests = [
   "lexes valid C stage 1 files" >::
     assert_can_lex_files_in_folder "stage_1/valid";
   "lexes invalid C stage 1 files" >::
@@ -55,4 +62,10 @@ let lexer_tests = [
     assert_can_lex_files_in_folder "stage_3/valid";
   "lexes invalid C stage 3 files" >::
     assert_can_lex_files_in_folder "stage_3/invalid";
+  "lexes valid C stage 4 files" >::
+    assert_can_lex_files_in_folder "stage_4/valid";
+  "lexes invalid C stage 4 files" >::
+    assert_can_lex_files_in_folder "stage_4/invalid";
 ]
+
+let lexer_tests = List.concat [lexer_general_tests; lexer_file_tests]
