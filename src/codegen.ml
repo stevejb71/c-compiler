@@ -12,7 +12,7 @@ let rec codegen_exp emitter asm =
     emitter (Pop Rcx)
   in match asm with
   | Const x -> 
-      emitter (Movl {x; r=Eax})
+      emitter (Movl (x, Eax))
   | Complement e -> 
       codegen_exp emitter e;
       emitter (Not Eax)
@@ -21,8 +21,8 @@ let rec codegen_exp emitter asm =
       emitter (Neg Eax)
   | Logical_Negation e -> 
       codegen_exp emitter e;
-      emitter (Cmpl {x=0; r=Eax});
-      emitter (Movl {x=0; r=Eax});
+      emitter (Cmpl (0, Eax));
+      emitter (Movl (0, Eax));
       emitter (Sete Al)
   | Addition (e1, e2) -> 
       emit_binary_op e1 e2;
@@ -34,7 +34,7 @@ let rec codegen_exp emitter asm =
       emit_binary_op e1 e2;
       emitter (IMul (Ecx, Eax))
   | Division (e1, e2) -> 
-      emitter (Movl {x=0; r=Edx});
+      emitter (Movl (0, Edx));
       codegen_exp emitter e2;
       emitter (Push Rax);
       codegen_exp emitter e1;
