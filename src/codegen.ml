@@ -87,7 +87,6 @@ let rec codegen_exp emitter asm =
       emitter (Movl (0, Eax));
       emitter (Setne Al)
 
-
 let codegen_stmt emitter = function
 | Return e -> 
     codegen_exp emitter e;

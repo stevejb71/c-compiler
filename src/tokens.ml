@@ -8,7 +8,7 @@ type t =
   | SEMICOLON
   | KEYWORD_INT
   | KEYWORD_RETURN
-  | IDENTIFIER
+  | IDENTIFIER of string
   | INT_LITERAL of int  
   | NEGATION
   | LOGICAL_NEGATION
@@ -33,7 +33,7 @@ let print_token = function
 | SEMICOLON -> "<SEMICOLON>"
 | KEYWORD_INT -> "<KEYWORD_INT>"
 | KEYWORD_RETURN -> "<KEYWORD_RETURN>"
-| IDENTIFIER -> "<IDENTIFIER>"
+| IDENTIFIER s -> Printf.sprintf "<IDENTIFIER: %s>" s
 | INT_LITERAL n -> Printf.sprintf "<INT_LITERAL: %d>" n
 | NEGATION -> "<NEGATION>"
 | LOGICAL_NEGATION -> "<LOGICAL_NEGATION>"
@@ -58,7 +58,7 @@ let eq (t1: t) (t2: t) = match t1, t2 with
 | SEMICOLON, SEMICOLON -> true
 | KEYWORD_INT, KEYWORD_INT -> true
 | KEYWORD_RETURN, KEYWORD_RETURN -> true
-| IDENTIFIER, IDENTIFIER -> true
+| IDENTIFIER s1, IDENTIFIER s2 -> String.(s1 = s2)
 | INT_LITERAL n1, INT_LITERAL n2 -> Int.(n1 = n2)
 | NEGATION, NEGATION -> true
 | LOGICAL_NEGATION, LOGICAL_NEGATION -> true

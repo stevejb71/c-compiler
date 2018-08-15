@@ -21,6 +21,9 @@ let parse_int: token_maker = fun str start finish ->
     | _ -> Error ("cannot read int from " ^ int_token) in
   Result.map int_token ~f:(fun n -> [INT_LITERAL n])
 
+let parse_str: token_maker = fun str start finish ->
+  Ok [IDENTIFIER (String.sub str start (finish - start))]
+
 let token_regexs: (Re.re * token_maker) list = compile_tokens [
   "\\{", one OPEN_CURLY;
   "\\}", one CLOSE_CURLY;
@@ -44,7 +47,7 @@ let token_regexs: (Re.re * token_maker) list = compile_tokens [
   "int(\\s+)", one KEYWORD_INT;
   "return;", (fun _ _ _ -> Ok [KEYWORD_RETURN; SEMICOLON]);
   "return(\\s+)", one KEYWORD_RETURN;
-  "[a-zA-Z]+", one IDENTIFIER;
+  "[a-zA-Z]+", parse_str;
   "[0-9]+", parse_int;
 ]
 

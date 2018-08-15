@@ -4,6 +4,14 @@ open Tokens
 
 type 'a tokens_parser = Tokens.t list -> ((Tokens.t list * 'a), string) Result.t
 
+let parse_token_using_function (accept: Tokens.t -> 'a) (expected: string) tokens =
+  match List.hd tokens with
+  | None -> Error (Printf.sprintf "was expecting %s but ran out of tokens" expected)
+  | Some t ->
+      match accept t with
+      | None -> Error (Printf.sprintf "was expecting %s but got %s" expected (print_token t))
+      | Some x -> Ok (List.tl_exn tokens, x)
+
 let parse_token (expected: Tokens.t) (tokens: Tokens.t list): (Tokens.t list, string) Result.t =
   match List.hd tokens with
   | Some t when Tokens.eq t expected -> Ok (List.tl_exn tokens)
@@ -120,13 +128,13 @@ let parse_fundef: fundef tokens_parser = fun tokens ->
   let open Result.Monad_infix in
   tokens |>
   parse_token KEYWORD_INT >>=
-  parse_token IDENTIFIER >>=
-  parse_token OPEN_ROUND >>=
+  parse_token_using_function (function | IDENTIFIER s -> Some s | _ -> None) "function name" >>= fun (tokens, func_name) ->
+  parse_token OPEN_ROUND tokens >>=
   parse_token CLOSE_ROUND >>=
   parse_token OPEN_CURLY >>=
   parse_stmt >>= fun (tokens, stmt) ->
   parse_token CLOSE_CURLY tokens >>| fun tokens -> 
-  (tokens, {name = "main"; body = stmt})
+  (tokens, {name = func_name; body = stmt})
 
 let parse tokens = 
   let open Result.Monad_infix in
