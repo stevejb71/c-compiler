@@ -15,6 +15,9 @@ Binary operators +, -, *, and /, with correct precedence and associativity.
 Recursive descent is maintained as the parsing method (though Pratt parsing looks like a better bet)
 
 Stage 4
+Relational operators: &&, ||, ==, !=, <=, >=, <, >
+
+Stage 5
 In progress
 
 ```
