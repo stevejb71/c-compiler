@@ -16,119 +16,73 @@ let unary_op_ast exp = function
 | LOGICAL_NEGATION -> Logical_Negation exp
 | _ -> failwith "bug"
 
-let rec parse_exp: exp tokens_parser = fun tokens ->
+let parse_many2 parse_exp token_to_ast_maker: exp tokens_parser = fun tokens ->
   let open Result.Monad_infix in
-  let rec parse_logical_and_exps exp: exp tokens_parser = fun tokens ->
+  let rec parse_loop exp: exp tokens_parser = fun tokens ->
     match List.hd tokens with
-    | Some LOGICAL_OR -> 
-      List.tl_exn tokens |>
-      parse_logical_and_exp >>= fun (tokens, e2) ->
-      parse_logical_and_exps (Logical_Or (exp, e2)) tokens
-    | _ -> Ok (tokens, exp)
+    | None -> Ok (tokens, exp)
+    | Some t ->
+        match token_to_ast_maker t with
+        | None -> Ok (tokens, exp)
+        | Some make_ast ->
+            List.tl_exn tokens |>
+            parse_exp >>= fun (tokens, e2) ->
+            parse_loop (make_ast exp e2) tokens
   in
   tokens |>
-  parse_logical_and_exp >>= fun (tokens, e1) ->
-  parse_logical_and_exps e1 tokens >>| fun (tokens, e) ->
+  parse_exp >>= fun (tokens, e1) ->
+  parse_loop e1 tokens >>| fun (tokens, e) ->
   (tokens, e)
+            
+let parse_many parse_exp token make_ast: exp tokens_parser = fun tokens ->
+  parse_many2 
+    parse_exp
+    (fun t -> if Tokens.eq t token then Some make_ast else None)
+    tokens
+
+let rec parse_exp: exp tokens_parser = fun tokens ->
+  parse_many 
+    parse_logical_and_exp 
+    LOGICAL_OR 
+    (fun e1 e2 -> Logical_Or (e1, e2))
+    tokens
 
 and parse_logical_and_exp: exp tokens_parser = fun tokens ->
-  let open Result.Monad_infix in
-  let rec parse_equality_exps exp: exp tokens_parser = fun tokens ->
-    match List.hd tokens with
-    | Some LOGICAL_AND -> 
-      List.tl_exn tokens |>
-      parse_equality_exp >>= fun (tokens, e2) ->
-      parse_equality_exps (Logical_And (exp, e2)) tokens
-    | _ -> Ok (tokens, exp)
-  in
-  tokens |>
-  parse_equality_exp >>= fun (tokens, e1) ->
-  parse_equality_exps e1 tokens >>| fun (tokens, e) ->
-  (tokens, e)
+  parse_many 
+    parse_equality_exp 
+    LOGICAL_AND 
+    (fun e1 e2 -> Logical_And (e1, e2))
+    tokens
 
-and parse_equality_exp = fun tokens ->
-  let open Result.Monad_infix in
-  let rec parse_relational_exps exp: exp tokens_parser = fun tokens ->
-    match List.hd tokens with
-    | Some EQUAL -> 
-      List.tl_exn tokens |>
-      parse_relational_exp >>= fun (tokens, e2) ->
-      parse_relational_exps (Equality (exp, e2)) tokens
-    | Some NOT_EQUAL -> 
-      List.tl_exn tokens |>
-      parse_relational_exp >>= fun (tokens, e2) ->
-      parse_relational_exps (Inequality (exp, e2)) tokens
-    | _ -> Ok (tokens, exp)
-  in
-  tokens |>
-  parse_relational_exp >>= fun (tokens, e1) ->
-  parse_relational_exps e1 tokens >>| fun (tokens, e) ->
-  (tokens, e)
+and parse_equality_exp: exp tokens_parser = fun tokens ->
+  let tokens_to_ast_maker = function
+  | EQUAL -> Some (fun e1 e2 -> Equality (e1, e2))
+  | NOT_EQUAL -> Some (fun e1 e2 -> Inequality (e1, e2)) 
+  | _ -> None in
+  parse_many2 parse_relational_exp tokens_to_ast_maker tokens
 
-and parse_relational_exp = fun tokens ->
-  let open Result.Monad_infix in
-  let rec parse_additive_exps exp: exp tokens_parser = fun tokens ->
-    match List.hd tokens with
-    | Some LESS_THAN -> 
-      List.tl_exn tokens |>
-      parse_additive_exp >>= fun (tokens, e2) ->
-      parse_additive_exps (LessThan (exp, e2)) tokens
-    | Some GREATER_THAN -> 
-      List.tl_exn tokens |>
-      parse_additive_exp >>= fun (tokens, e2) ->
-      parse_additive_exps (GreaterThan (exp, e2)) tokens
-    | Some LESS_THAN_OR_EQUAL -> 
-      List.tl_exn tokens |>
-      parse_additive_exp >>= fun (tokens, e2) ->
-      parse_additive_exps (LessThanOrEqual (exp, e2)) tokens
-    | Some GREATER_THAN_OR_EQUAL -> 
-      List.tl_exn tokens |>
-      parse_additive_exp >>= fun (tokens, e2) ->
-      parse_additive_exps (GreaterThanOrEqual (exp, e2)) tokens
-    | _ -> Ok (tokens, exp)
-  in
-  tokens |>
-  parse_additive_exp >>= fun (tokens, e1) ->
-  parse_additive_exps e1 tokens >>| fun (tokens, e) ->
-  (tokens, e)
+and parse_relational_exp: exp tokens_parser = fun tokens ->
+  let tokens_to_ast_maker = function
+  | LESS_THAN -> Some (fun e1 e2 -> LessThan (e1, e2))
+  | GREATER_THAN -> Some (fun e1 e2 -> GreaterThan (e1, e2)) 
+  | LESS_THAN_OR_EQUAL -> Some (fun e1 e2 -> LessThanOrEqual (e1, e2)) 
+  | GREATER_THAN_OR_EQUAL -> Some (fun e1 e2 -> GreaterThanOrEqual (e1, e2)) 
+  | _ -> None in
+  parse_many2 parse_additive_exp tokens_to_ast_maker tokens
 
 and parse_additive_exp: exp tokens_parser = fun tokens ->
-  let open Result.Monad_infix in
-  let rec parse_terms exp: exp tokens_parser = fun tokens ->
-    match List.hd tokens with
-    | Some ADDITION -> 
-      List.tl_exn tokens |>
-      parse_term >>= fun (tokens, e2) ->
-      parse_terms (Addition (exp, e2)) tokens
-    | Some NEGATION -> 
-      List.tl_exn tokens |>
-      parse_term >>= fun (tokens, e2) ->
-      parse_terms (Subtraction (exp, e2)) tokens
-    | _ -> Ok (tokens, exp)
-  in
-  tokens |>
-  parse_term >>= fun (tokens, e1) ->
-  parse_terms e1 tokens >>| fun (tokens, e) ->
-  (tokens, e)
+  let tokens_to_ast_maker = function
+  | ADDITION -> Some (fun e1 e2 -> Addition (e1, e2))
+  | NEGATION -> Some (fun e1 e2 -> Subtraction (e1, e2)) 
+  | _ -> None in
+  parse_many2 parse_term tokens_to_ast_maker tokens
 
 and parse_term: exp tokens_parser = fun tokens ->
-  let open Result.Monad_infix in
-  let rec parse_factors exp: exp tokens_parser = fun tokens ->
-    match List.hd tokens with
-    | Some MULTIPLICATION -> 
-      List.tl_exn tokens |>
-      parse_factor >>= fun (tokens, e2) ->
-      parse_factors (Multiplication (exp, e2)) tokens
-    | Some DIVISION -> 
-      List.tl_exn tokens |>
-      parse_factor >>= fun (tokens, e2) ->
-      parse_factors (Division (exp, e2)) tokens
-    | _ -> Ok (tokens, exp)
-  in
-  tokens |>
-  parse_factor >>= fun (tokens, e1) ->
-  parse_factors e1 tokens >>| fun (tokens, e) ->
-  (tokens, e)
+  let tokens_to_ast_maker = function
+  | MULTIPLICATION -> Some (fun e1 e2 -> Multiplication (e1, e2))
+  | DIVISION -> Some (fun e1 e2 -> Division (e1, e2)) 
+  | _ -> None in
+  parse_many2 parse_factor tokens_to_ast_maker tokens
 
 and parse_factor: exp tokens_parser = fun tokens ->
   let open Result.Monad_infix in
