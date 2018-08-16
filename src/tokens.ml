@@ -24,6 +24,7 @@ type t =
   | LESS_THAN_OR_EQUAL
   | GREATER_THAN
   | GREATER_THAN_OR_EQUAL
+  | ASSIGNMENT
 
 let print_token = function
 | OPEN_CURLY -> "<OPEN_CURLY>"
@@ -49,6 +50,7 @@ let print_token = function
 | LESS_THAN_OR_EQUAL -> "<LESS_THAN_OR_EQUAL>"
 | GREATER_THAN -> "<GREATER_THAN>"
 | GREATER_THAN_OR_EQUAL -> "<GREATER_THAN_OR_EQUAL>"
+| ASSIGNMENT -> "<ASSIGNMENT>"
   
 let eq (t1: t) (t2: t) = match t1, t2 with
 | OPEN_CURLY, OPEN_CURLY -> true
@@ -73,6 +75,7 @@ let eq (t1: t) (t2: t) = match t1, t2 with
 | LESS_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL -> true
 | GREATER_THAN, GREATER_THAN -> true
 | GREATER_THAN_OR_EQUAL, GREATER_THAN_OR_EQUAL -> true
+| ASSIGNMENT, ASSIGNMENT -> true
 | _ -> false
 
 let is_unary_op = function

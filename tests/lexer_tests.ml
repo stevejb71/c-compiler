@@ -47,6 +47,8 @@ let lexer_general_tests = [
     assert_ok 
       [LOGICAL_AND; LOGICAL_OR; EQUAL; LESS_THAN; GREATER_THAN; LESS_THAN_OR_EQUAL; GREATER_THAN_OR_EQUAL; NOT_EQUAL]
       (lex "&& || == < > <= >= !=");
+  "lexes assignment" >::
+    assert_ok [ASSIGNMENT] (lex "=");
 ]
 
 let lexer_file_tests = [
@@ -66,6 +68,10 @@ let lexer_file_tests = [
     assert_can_lex_files_in_folder "stage_4/valid";
   "lexes invalid C stage 4 files" >::
     assert_can_lex_files_in_folder "stage_4/invalid";
+  "lexes valid C stage 5 files" >::
+    assert_can_lex_files_in_folder "stage_5/valid";
+  "lexes invalid C stage 5 files" >::
+    assert_can_lex_files_in_folder "stage_5/invalid";
 ]
 
 let lexer_tests = List.concat [lexer_general_tests; lexer_file_tests]

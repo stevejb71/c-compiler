@@ -40,6 +40,7 @@ let token_regexs: (Re.re * token_maker) list = compile_tokens [
   "&&", one LOGICAL_AND;
   "\\|\\|", one LOGICAL_OR;
   "==", one EQUAL;
+  "=", one ASSIGNMENT;
   "<=", one LESS_THAN_OR_EQUAL;
   "<", one LESS_THAN;
   ">=", one GREATER_THAN_OR_EQUAL;
