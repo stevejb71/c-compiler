@@ -124,6 +124,16 @@ let parse_stmt: stmt tokens_parser = fun tokens ->
   parse_token SEMICOLON tokens >>| fun tokens ->
   (tokens, ret)
 
+let rec parse_stmts: stmt list tokens_parser = fun tokens -> 
+  let open Result.Monad_infix in
+  match List.hd tokens with
+  | None -> Ok (tokens, [])
+  | Some t when starts_statement t ->
+      parse_stmt tokens >>= fun (tokens, stmt) ->
+      parse_stmts tokens >>| fun (tokens, stmts) ->
+      (tokens, stmt :: stmts)
+  | Some _ -> Ok (tokens, [])
+
 let parse_fundef: fundef tokens_parser = fun tokens -> 
   let open Result.Monad_infix in
   tokens |>
@@ -132,9 +142,9 @@ let parse_fundef: fundef tokens_parser = fun tokens ->
   parse_token OPEN_ROUND tokens >>=
   parse_token CLOSE_ROUND >>=
   parse_token OPEN_CURLY >>=
-  parse_stmt >>= fun (tokens, stmt) ->
+  parse_stmts >>= fun (tokens, body) ->
   parse_token CLOSE_CURLY tokens >>| fun tokens -> 
-  (tokens, {name = func_name; body = stmt})
+  (tokens, {name = func_name; body})
 
 let parse tokens = 
   let open Result.Monad_infix in

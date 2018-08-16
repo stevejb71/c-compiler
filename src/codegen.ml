@@ -95,6 +95,6 @@ let codegen_stmt emitter = function
 let codegen_fundef emitter {name; body} =
   emitter (Globl name);
   emitter (Label name);
-  codegen_stmt emitter body
+  List.iter body ~f:(codegen_stmt emitter)
 
 let codegen e p = Ok (codegen_fundef e p)

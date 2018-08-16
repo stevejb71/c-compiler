@@ -88,9 +88,14 @@ let general_parser_tests = [
   "expects a function name after int on its own" >::
     assert_error "was expecting function name but ran out of tokens" (parse [KEYWORD_INT]);
   "parses the stage 1 C function" >::
-    assert_ok {name="main"; body=Return (Const 52)} @@ parse [KEYWORD_INT; IDENTIFIER "main"; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 52; SEMICOLON; CLOSE_CURLY];
+    assert_ok {name="main"; body=[Return (Const 52)]} @@ parse [KEYWORD_INT; IDENTIFIER "main"; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 52; SEMICOLON; CLOSE_CURLY];
   "spots an error if stage 1 C function has badly placed brackets" >::
     assert_error "was expecting <OPEN_ROUND> but got <OPEN_CURLY>" @@ parse [KEYWORD_INT; IDENTIFIER "main"; OPEN_CURLY; CLOSE_CURLY; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 3; SEMICOLON; CLOSE_CURLY];
+  "a function body can be empty" >::
+    assert_ok {name="main"; body=[]} @@ parse [KEYWORD_INT; IDENTIFIER "main"; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; CLOSE_CURLY];
+  "a function body can have two statements" >::
+    assert_ok {name="main"; body=[Return (Const 1); Return (Const 2)]} @@ parse [KEYWORD_INT; IDENTIFIER "main"; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; 
+      KEYWORD_RETURN; INT_LITERAL 1; SEMICOLON; KEYWORD_RETURN; INT_LITERAL 2; SEMICOLON; CLOSE_CURLY];
 ]
 
 let parser_file_tests = [

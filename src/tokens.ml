@@ -81,3 +81,7 @@ let eq (t1: t) (t2: t) = match t1, t2 with
 let is_unary_op = function
 | NEGATION | LOGICAL_NEGATION | COMPLEMENT -> true
 | _ -> false
+
+let starts_statement = function
+| KEYWORD_RETURN -> true
+| _ -> false

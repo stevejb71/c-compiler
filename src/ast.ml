@@ -23,7 +23,7 @@ type stmt =
 
 type fundef = {
   name: string;
-  body: stmt;
+  body: stmt list;
 }
 
 type program = fundef
@@ -55,4 +55,4 @@ let show_program ({name; body}: program): string =
   let show_stmt = function
   | Return exp -> Printf.sprintf "return %s" (show_exp exp)
   in
-  Printf.sprintf "%s {%s}" name (show_stmt body)
+  Printf.sprintf "%s {%s}" name (List.map ~f:show_stmt body |> String.concat ~sep:"\n")
