@@ -22,3 +22,5 @@ val parse: Tokens.t list -> (program, string) Result.t
 type 'a tokens_parser = Tokens.t list -> ((Tokens.t list * 'a), string) Result.t
 
 val parse_exp: exp tokens_parser
+
+val parse_stmt: stmt tokens_parser
