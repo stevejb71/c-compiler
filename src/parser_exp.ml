@@ -92,5 +92,14 @@ and parse_factor: exp tokens_parser = fun tokens ->
       (tokens, unary_op_ast exp t)
   | Some (INT_LITERAL n) ->
       Ok (List.tl_exn tokens, Const n)
+  | Some (IDENTIFIER var) -> begin
+      let tokens = List.tl_exn tokens in
+      match List.hd tokens with
+      | Some ASSIGNMENT ->
+          let tokens = List.tl_exn tokens in
+          parse_exp tokens >>| fun (tokens, e) ->
+          (tokens, Assign ("var", e))
+      | _ -> Error "bad assigment"
+    end
   | Some _ -> Error "parser error"
   | _ -> Error "no more tokens"

@@ -39,4 +39,6 @@ let parser_exp_tests = [
     assert_ok_exp (Subtraction (Subtraction (Const 1, Const 2), Const 3)) @@ parse_exp [INT_LITERAL 1; NEGATION; INT_LITERAL 2; NEGATION; INT_LITERAL 3];
   "parse_exp parses || with lower precedence than &&" >::
     assert_ok_exp (Logical_Or (Const 12, Logical_And (Const 5, Const 7))) @@ parse_exp [INT_LITERAL 12; LOGICAL_OR; INT_LITERAL 5; LOGICAL_AND; INT_LITERAL 7];
+  "parse_exp an assigment" >::
+    assert_ok_exp (Assign ("X", Const 5)) @@ parse_exp [IDENTIFIER "X"; ASSIGNMENT; INT_LITERAL 5;];
 ]

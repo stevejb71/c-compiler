@@ -17,6 +17,7 @@ type exp =
 | LessThanOrEqual of exp * exp
 | GreaterThan of exp * exp
 | GreaterThanOrEqual of exp * exp
+| Assign of string * exp
 
 type stmt =
 | Return of exp
@@ -29,7 +30,6 @@ type fundef = {
 }
 
 type program = fundef
-
 
 let rec show_exp e = 
   let show_binary_exp op e1 e2 =
@@ -52,6 +52,7 @@ let rec show_exp e =
   | LessThanOrEqual (e1, e2) -> show_binary_exp "<=" e1 e2
   | GreaterThan (e1, e2) -> show_binary_exp ">" e1 e2
   | GreaterThanOrEqual (e1, e2) -> show_binary_exp ">=" e1 e2
+  | Assign (n, e) -> Printf.sprintf "%s = %s" n (show_exp e)
 
 let show_program ({name; body}: program): string = 
   let show_stmt = function
@@ -59,5 +60,6 @@ let show_program ({name; body}: program): string =
   | Declare {name; initial_value} -> 
       let init_string = Option.value_map initial_value ~default:"" ~f:(fun e -> " = " ^ show_exp e) in
       Printf.sprintf "int %s%s" name init_string
+  | _ -> failwith "laters"
   in
   Printf.sprintf "%s {%s}" name (List.map ~f:show_stmt body |> String.concat ~sep:"\n")

@@ -2,6 +2,9 @@ open Base
 open Ast
 open OUnit
 
+let assert_strings_equal s1 s2 =
+  assert_equal s1 s2 ~printer:Fn.id
+
 let rec assert_equal_exps exp got = 
   match exp, got with
   | Const e, Const g -> assert_equal e g
@@ -19,6 +22,7 @@ let rec assert_equal_exps exp got =
   | LessThanOrEqual (e1, e2), LessThanOrEqual (g1, g2) -> assert_equal_exps e1 g1; assert_equal_exps e2 g2
   | GreaterThan (e1, e2), GreaterThan (g1, g2) -> assert_equal_exps e1 g1; assert_equal_exps e2 g2
   | GreaterThanOrEqual (e1, e2), GreaterThanOrEqual (g1, g2) -> assert_equal_exps e1 g1; assert_equal_exps e2 g2
+  | Assign (v1, e1), Assign (v2, e2) -> assert_strings_equal v1 v2; assert_equal_exps e1 e2
   | _, _ -> failwith (Printf.sprintf "expected %s but got %s" (show_exp exp) (show_exp got))
 
 let assert_ok_exp (exp: Ast.exp) (got : (('a * Ast.exp), string) Result.t) _ctxt = 
