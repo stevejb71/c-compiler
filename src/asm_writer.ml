@@ -47,5 +47,3 @@ let asm_to_string = function
 | Pop r -> op_reg_to_string reg64_to_str "pop" r
 | Orl rs -> binary_op_to_string reg32_to_str "orl" rs
 | Andb rs -> binary_op_to_string reg8_to_str "andb" rs
-
-let emit_asm emitter = emitter >|> asm_to_string

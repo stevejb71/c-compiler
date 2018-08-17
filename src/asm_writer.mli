@@ -1,4 +1,3 @@
-open Base
 open Asm
 
-val emit_asm: (string -> unit) -> Asm.t -> unit
+val asm_to_string : Asm.t -> string
