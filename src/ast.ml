@@ -20,7 +20,7 @@ type exp =
 
 type stmt =
 | Return of exp
-| Declare of {name: string; initial_value: int option}
+| Declare of {name: string; initial_value: exp option}
 
 type fundef = {
   name: string;
@@ -56,7 +56,7 @@ let show_program ({name; body}: program): string =
   let show_stmt = function
   | Return exp -> Printf.sprintf "return %s" (show_exp exp)
   | Declare {name; initial_value} -> 
-      let init_string = Option.value_map initial_value ~default:"" ~f:(fun n -> " = " ^ Int.to_string n) in
+      let init_string = Option.value_map initial_value ~default:"" ~f:(fun e -> " = " ^ show_exp e) in
       Printf.sprintf "int %s%s" name init_string
   in
   Printf.sprintf "%s {%s}" name (List.map ~f:show_stmt body |> String.concat ~sep:"\n")

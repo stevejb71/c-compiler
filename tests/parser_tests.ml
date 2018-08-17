@@ -48,6 +48,8 @@ let assert_fails_to_parse_files_in_folder (foldername: string) _ctxt =
 let statement_tests = [
   "a statement can be a declaration without initializer" >::
     assert_ok_stmt (Declare {name="x"; initial_value=None}) (parse_stmt [KEYWORD_INT; IDENTIFIER "x"; SEMICOLON;]);
+  "a statement can be a declaration with an initializer" >::
+    assert_ok_stmt (Declare {name="x"; initial_value=Some (Const 10)}) (parse_stmt [KEYWORD_INT; IDENTIFIER "x"; ASSIGNMENT; INT_LITERAL 10; SEMICOLON]);
 ]
   
 let general_parser_tests = [
