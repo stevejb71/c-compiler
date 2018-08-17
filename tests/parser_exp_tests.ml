@@ -41,4 +41,6 @@ let parser_exp_tests = [
     assert_ok_exp (Logical_Or (Const 12, Logical_And (Const 5, Const 7))) @@ parse_exp [INT_LITERAL 12; LOGICAL_OR; INT_LITERAL 5; LOGICAL_AND; INT_LITERAL 7];
   "parse_exp an assigment" >::
     assert_ok_exp (Assign ("X", Const 5)) @@ parse_exp [IDENTIFIER "X"; ASSIGNMENT; INT_LITERAL 5;];
+  "parse_exp on a variable" >::
+    assert_ok_exp (Var "X") @@ parse_exp [IDENTIFIER "X";];
 ]

@@ -18,6 +18,7 @@ type exp =
 | GreaterThan of exp * exp
 | GreaterThanOrEqual of exp * exp
 | Assign of string * exp
+| Var of string
 
 type stmt =
 | Return of exp
@@ -53,6 +54,7 @@ let rec show_exp e =
   | GreaterThan (e1, e2) -> show_binary_exp ">" e1 e2
   | GreaterThanOrEqual (e1, e2) -> show_binary_exp ">=" e1 e2
   | Assign (n, e) -> Printf.sprintf "%s = %s" n (show_exp e)
+  | Var n -> n
 
 let show_program ({name; body}: program): string = 
   let show_stmt = function
