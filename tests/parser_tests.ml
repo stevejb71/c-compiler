@@ -6,6 +6,7 @@ open Parser
 open Lexer
 open Test_files
 open Parser_stmt
+open Parser_test_asserts
 
 let assert_ok exp got _ctxt =
   let got = Result.ok_or_failwith got in
@@ -13,13 +14,18 @@ let assert_ok exp got _ctxt =
 
 let assert_ok_stmt stmt got _ctxt = 
   let got = snd (Result.ok_or_failwith got) in
-  let rec go assert_ok_stmt got = 
-    match stmt, got with
-    | Declare {name=n1; initial_value=v1}, Declare {name=n2; initial_value=v2} -> assert_equal n1 n2 ~printer:Fn.id; 
-    | Return e1, Return e2 -> failwith "laters"
-    | _, _ -> failwith "laters"
-  in go stmt got
-  
+  match stmt, got with
+  | Declare {name=n1; initial_value=e1}, Declare {name=n2; initial_value=e2} -> begin
+      assert_equal n1 n2 ~printer:Fn.id; 
+      match e1, e2 with
+      | Some e1, Some e2 -> begin assert_equal_exps e1 e2; end
+      | None, None -> ()
+      | _ -> failwith "no match"
+    end
+  | Exp e1, Exp e2 -> assert_equal_exps e1 e2;
+  | Return e1, Return e2 -> assert_equal_exps e1 e2;
+  | _ -> failwith "laters"
+
 let assert_error (exp: string) (got: ('a, string) Result.t) _ctxt = 
   match got with
   | Ok _ -> failwith "Was expecting a failure"
@@ -50,6 +56,8 @@ let statement_tests = [
     assert_ok_stmt (Declare {name="x"; initial_value=None}) (parse_stmt [KEYWORD_INT; IDENTIFIER "x"; SEMICOLON;]);
   "a statement can be a declaration with an initializer" >::
     assert_ok_stmt (Declare {name="x"; initial_value=Some (Const 10)}) (parse_stmt [KEYWORD_INT; IDENTIFIER "x"; ASSIGNMENT; INT_LITERAL 10; SEMICOLON]);
+  "a standalone expression is a statement" >::
+    assert_ok_stmt (Exp (Addition (Const 2, Const 4))) (parse_stmt [INT_LITERAL 2; ADDITION; INT_LITERAL 4; SEMICOLON]);
 ]
   
 let general_parser_tests = [

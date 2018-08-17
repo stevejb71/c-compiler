@@ -21,6 +21,7 @@ type exp =
 type stmt =
 | Return of exp
 | Declare of {name: string; initial_value: exp option}
+| Exp of exp
 
 type fundef = {
   name: string;

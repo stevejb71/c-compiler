@@ -35,4 +35,6 @@ let parse_stmt: stmt tokens_parser = fun tokens ->
       parse_declare tokens >>= fun (tokens, ret) ->
       parse_token SEMICOLON tokens >>| fun tokens ->
       (tokens, ret)
-  | Some _ -> Error "not a statement"
+  | Some _ -> 
+      parse_exp tokens >>| fun (tokens, e) ->
+      (tokens, Exp e)

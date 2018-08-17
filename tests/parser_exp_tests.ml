@@ -5,33 +5,12 @@ open Tokens
 open Lexer
 open Test_files
 open Parser_exp
+open Parser_test_asserts
 
 let assert_ok exp got _ctxt =
   let got = Result.ok_or_failwith got in
   assert_equal (Ast.show_program exp) (Ast.show_program got) ~printer:Fn.id
 
-let assert_ok_exp exp got _ctxt = 
-  let got = snd (Result.ok_or_failwith got) in
-  let rec go exp got = 
-    match exp, got with
-    | Const e, Const g -> assert_equal e g
-    | Complement e, Complement g -> go e g
-    | Negation e, Negation g -> go e g
-    | Addition (e1, e2), Addition (g1, g2) -> go e1 g1; go e2 g2
-    | Subtraction (e1, e2), Subtraction (g1, g2) -> go e1 g1; go e2 g2
-    | Multiplication (e1, e2), Multiplication (g1, g2) -> go e1 g1; go e2 g2
-    | Division (e1, e2), Division (g1, g2) -> go e1 g1; go e2 g2
-    | Logical_Or (e1, e2), Logical_Or (g1, g2) -> go e1 g1; go e2 g2
-    | Logical_And (e1, e2), Logical_And (g1, g2) -> go e1 g1; go e2 g2
-    | Equality (e1, e2), Equality (g1, g2) -> go e1 g1; go e2 g2
-    | Inequality (e1, e2), Inequality (g1, g2) -> go e1 g1; go e2 g2
-    | LessThan (e1, e2), LessThan (g1, g2) -> go e1 g1; go e2 g2
-    | LessThanOrEqual (e1, e2), LessThanOrEqual (g1, g2) -> go e1 g1; go e2 g2
-    | GreaterThan (e1, e2), GreaterThan (g1, g2) -> go e1 g1; go e2 g2
-    | GreaterThanOrEqual (e1, e2), GreaterThanOrEqual (g1, g2) -> go e1 g1; go e2 g2
-    | _, _ -> failwith (Printf.sprintf "expected %s but got %s" (show_exp exp) (show_exp got))
-  in go exp got
-  
 let assert_error (exp: string) (got: ('a, string) Result.t) _ctxt = 
   match got with
   | Ok _ -> failwith "Was expecting a failure"
