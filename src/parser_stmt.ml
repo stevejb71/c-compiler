@@ -36,5 +36,6 @@ let parse_stmt: stmt tokens_parser = fun tokens ->
       parse_token SEMICOLON tokens >>| fun tokens ->
       (tokens, ret)
   | Some _ -> 
-      parse_exp tokens >>| fun (tokens, e) ->
+      parse_exp tokens >>= fun (tokens, e) ->
+      parse_token SEMICOLON tokens >>| fun tokens ->
       (tokens, Exp e)

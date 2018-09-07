@@ -12,15 +12,26 @@ type register32 =
 type register64 =
 | Rax
 | Rcx
+| Rbp
+| Rsp
 
 type operand32 =
 | I of int
 | R of register32
 
+type operand64 =
+| I of int
+| R of register64
+
+type register =
+| R32 of register32
+| R64 of register64
+
 type t =
 | Globl of string
 | Label of string
-| Movl of (int * register32)
+| Movl of (operand32 * register32)
+| Movq of (operand64 * register64)
 | Ret
 | Neg of register32
 | Not of register32

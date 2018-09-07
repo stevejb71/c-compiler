@@ -17,11 +17,11 @@ let rec codegen_exp emitter asm =
     codegen_exp emitter e2;
     emitter (Pop Rcx);
     emitter (Cmpl (R Eax, Ecx));
-    emitter (Movl (0, Eax));
+    emitter (Movl (I 0, Eax));
   in 
   match asm with
   | Const x -> 
-      emitter (Movl (x, Eax))
+      emitter (Movl (I x, Eax))
   | Complement e -> 
       codegen_exp emitter e;
       emitter (Not Eax)
@@ -31,7 +31,7 @@ let rec codegen_exp emitter asm =
   | Logical_Negation e -> 
       codegen_exp emitter e;
       emitter (Cmpl (I 0, Eax));
-      emitter (Movl (0, Eax));
+      emitter (Movl (I 0, Eax));
       emitter (Sete Al)
   | Addition (e1, e2) -> 
       emit_binary_op e1 e2;
@@ -43,7 +43,7 @@ let rec codegen_exp emitter asm =
       emit_binary_op e1 e2;
       emitter (IMul (Ecx, Eax))
   | Division (e1, e2) -> 
-      emitter (Movl (0, Edx));
+      emitter (Movl (I 0, Edx));
       codegen_exp emitter e2;
       emitter (Push Rax);
       codegen_exp emitter e1;
@@ -75,7 +75,7 @@ let rec codegen_exp emitter asm =
       emitter (Cmpl (I 0, Ecx));
       emitter (Setne Cl);
       emitter (Cmpl (I 0, Eax));
-      emitter (Movl (0, Eax));
+      emitter (Movl (I 0, Eax));
       emitter (Setne Al);
       emitter (Andb (Cl, Al))
   | Logical_Or (e1, e2) ->
@@ -84,17 +84,23 @@ let rec codegen_exp emitter asm =
       codegen_exp emitter e2;
       emitter (Pop Rcx);
       emitter (Orl (Ecx, Eax));
-      emitter (Movl (0, Eax));
+      emitter (Movl (I 0, Eax));
       emitter (Setne Al)
+  | _ -> failwith "error 1"
 
 let codegen_stmt emitter = function
 | Return e -> 
     codegen_exp emitter e;
-    emitter Ret
+  | _ -> failwith "error 2"
 
 let codegen_fundef emitter {name; body} =
   emitter (Globl name);
   emitter (Label name);
-  List.iter body ~f:(codegen_stmt emitter)
+  emitter (Push Rbp);
+  emitter (Movq (R Rsp,Rbp));
+  List.iter body ~f:(codegen_stmt emitter);
+  emitter (Movq (R Rbp,Rsp));
+  emitter (Pop Rbp);
+  emitter Ret
 
 let codegen e p = Ok (codegen_fundef e p)

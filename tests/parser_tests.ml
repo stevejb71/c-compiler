@@ -13,12 +13,13 @@ let assert_ok exp got _ctxt =
   assert_equal (Ast.show_program exp) (Ast.show_program got) ~printer:Fn.id
 
 let assert_ok_stmt stmt got _ctxt = 
-  let got = snd (Result.ok_or_failwith got) in
+  let (remaining, got) = Result.ok_or_failwith got in
+  assert_bool "not all tokens parsed" (List.is_empty remaining);
   match stmt, got with
   | Declare {name=n1; initial_value=e1}, Declare {name=n2; initial_value=e2} -> begin
       assert_equal n1 n2 ~printer:Fn.id; 
       match e1, e2 with
-      | Some e1, Some e2 -> begin assert_equal_exps e1 e2; end
+      | Some e1, Some e2 -> assert_equal_exps e1 e2;
       | None, None -> ()
       | _ -> failwith "no match"
     end
@@ -38,18 +39,18 @@ let assert_can_parse_file filename program =
   | Ok _ -> ()
   | Error msg -> failwith (Printf.sprintf "Failed on '%s' with msg %s" filename msg)
   
-let assert_fails_to_parse_file filename program =
+let assert_fails_to_parse_file filename program  =
   let open Result.Monad_infix in
   let lexed = lex program |> Result.ok_or_failwith in
   match parse lexed with
   | Ok _ -> failwith (Printf.sprintf "Should have failed on '%s'" filename)
   | Error msg -> ()
   
-let assert_can_parse_files_in_folder (foldername: string) _ctxt =
-  for_each_file_in_folder ~foldername ~f:assert_can_parse_file
+let assert_can_parse_files_in_folder (foldername: string) ?filter:(filter=(fun _ -> true)) _ctxt  =
+  for_each_file_in_folder ~foldername ~f:assert_can_parse_file ~filter
 
-let assert_fails_to_parse_files_in_folder (foldername: string) _ctxt =
-  for_each_file_in_folder ~foldername ~f:assert_fails_to_parse_file
+let assert_fails_to_parse_files_in_folder (foldername: string) ?filter:(filter=(fun _ -> true)) _ctxt =
+  for_each_file_in_folder ~foldername ~f:assert_fails_to_parse_file ~filter
     
 let statement_tests = [
   "a statement can be a declaration without initializer" >::
@@ -93,6 +94,12 @@ let parser_file_tests = [
     assert_can_parse_files_in_folder "stage_4/valid";
   "lexes but does not parse invalid stage 4 C files" >::
     assert_fails_to_parse_files_in_folder "stage_4/invalid";
+  "lexes and parses valid stage 5 C files" >::
+    assert_can_parse_files_in_folder "stage_5/valid";
+  "lexes and parses valid stage 5 C files in the invalid folder" >::
+    assert_can_parse_files_in_folder "stage_5/invalid" ~filter:(String.is_prefix ~prefix:"syntax_err" |> Fn.non);
+  "lexes and parses invalid stage 5 C files" >::
+    assert_fails_to_parse_files_in_folder "stage_5/invalid" ~filter:(String.is_prefix ~prefix:"syntax_err");
 ]
 
 let parser_tests = List.concat [general_parser_tests; parser_file_tests; statement_tests]

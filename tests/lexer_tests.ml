@@ -18,7 +18,7 @@ let assert_can_lex_file foldername filename program =
   | Error msg -> failwith (Printf.sprintf "Failed on '%s/%s' with msg %s" foldername filename msg)
   
 let assert_can_lex_files_in_folder (foldername: string) _ctxt =
-  for_each_file_in_folder ~foldername ~f:(assert_can_lex_file foldername)
+  for_each_file_in_folder ~foldername ~filter:(fun _ -> true) ~f:(assert_can_lex_file foldername)
   
 let lexer_general_tests = [
   "empty string has no tokens" >::
