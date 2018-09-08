@@ -5,6 +5,7 @@ let foldernames = [
   "tests/stage_2/valid";
   "tests/stage_3/valid";
   "tests/stage_4/valid";
+  "tests/stage_5/valid";
 ]
 
 type outputs = {
