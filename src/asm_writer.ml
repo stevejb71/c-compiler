@@ -30,6 +30,7 @@ let operand32_to_str (op: operand32) = match op with
 let operand64_to_str (op: operand64) = match op with
 | I n -> Printf.sprintf "$%d" n
 | R r -> reg64_to_str r
+| O (offset, r) -> Printf.sprintf "%d(%s)" offset (reg64_to_str r)
 
 let register_to_str = function
 | R32 r -> reg32_to_str r

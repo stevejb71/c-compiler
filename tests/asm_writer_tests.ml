@@ -15,4 +15,6 @@ let asm_writer_tests = [
     assert_asm_strings_equal "cmpl $32, %edx" (Cmpl (I 32,Edx));
   "cmpl on reg + reg" >::
     assert_asm_strings_equal "cmpl %ecx, %edx" (Cmpl (R Ecx,Edx));
+  "movq on an offset" >::
+    assert_asm_strings_equal "movq 24(%rbp), %rax" (Movq (O (24, Rbp), Rax));
 ]

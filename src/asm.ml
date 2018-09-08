@@ -22,6 +22,7 @@ type operand32 =
 type operand64 =
 | I of int
 | R of register64
+| O of (int * register64) (* offset *)
 
 type register =
 | R32 of register32
