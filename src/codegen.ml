@@ -103,15 +103,23 @@ let rec codegen_exp emitter variables e =
       emitter (Movl (I 0, Eax));
       emitter (Setne Al);
       None
-  | Assign (name, exp) ->
-      Some ""
-  | Var name ->
+  | Assign (name, exp) -> begin
       match Hashtbl.find variables name with
       | None -> Some (Printf.sprintf "%s is not declared" name)
       | Some stack_index -> begin
-          emitter (Movq (O (stack_index, Rbp), Rax));
+          cg exp;
+          emitter (Movq (R Rax, O (stack_index, Rbp)));
           None
         end
+    end
+  | Var name -> begin
+      match Hashtbl.find variables name with
+      | None -> Some (Printf.sprintf "%s is not declared" name)
+      | Some stack_index -> begin
+          emitter (Movq (O (stack_index, Rbp), R Rax));
+          None
+        end
+    end
 
 let codegen_stmt emitter variables stack_index = function
 | Return e -> 
@@ -120,6 +128,7 @@ let codegen_stmt emitter variables stack_index = function
 | Declare {name; initial_value} ->  
       let write_declaration e =
         ignore @@ codegen_exp emitter variables e;
+        emitter (Movq (R Rax, O (!stack_index, Rbp)));
         emitter (Push Rax) in
     if Option.is_some (Hashtbl.find variables name) 
     then Some (Printf.sprintf "Redeclaration of variable '%s'" name)
@@ -146,11 +155,11 @@ let codegen_fundef emitter {name; body} =
   emitter (Label name);
   (* Function prologue *)
   emitter (Push Rbp);
-  emitter (Movq (R Rsp,Rbp));
+  emitter (Movq (R Rsp,R Rbp));
   let stack_index = ref 0 in
   let result = codegen_stmts (codegen_stmt emitter variables stack_index) body in
   (* Function epilogue *)
-  emitter (Movq (R Rbp,Rsp));
+  emitter (Movq (R Rbp,R Rsp));
   emitter (Pop Rbp);
   emitter Ret;
   result

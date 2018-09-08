@@ -32,6 +32,10 @@ let operand64_to_str (op: operand64) = match op with
 | R r -> reg64_to_str r
 | O (offset, r) -> Printf.sprintf "%d(%s)" offset (reg64_to_str r)
 
+let dest_operand64_to_str (op: dest_operand64) = match op with
+| R r -> reg64_to_str r
+| O (offset, r) -> Printf.sprintf "%d(%s)" offset (reg64_to_str r)
+
 let register_to_str = function
 | R32 r -> reg32_to_str r
 | R64 r -> reg64_to_str r
@@ -40,7 +44,7 @@ let asm_to_string = function
 | Globl s -> ".globl " ^ s
 | Label s -> s ^ ":"
 | Movl (rs, rd) -> Printf.sprintf "movl %s, %s" (operand32_to_str rs) (reg32_to_str rd)
-| Movq (rs, rd) -> Printf.sprintf "movq %s, %s" (operand64_to_str rs) (reg64_to_str rd)
+| Movq (rs, rd) -> Printf.sprintf "movq %s, %s" (operand64_to_str rs) (dest_operand64_to_str rd)
 | Ret -> "ret"
 | Neg r -> op_reg_to_string reg32_to_str "neg" r
 | Not r -> op_reg_to_string reg32_to_str "not" r

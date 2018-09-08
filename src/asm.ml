@@ -24,6 +24,10 @@ type operand64 =
 | R of register64
 | O of (int * register64) (* offset *)
 
+type dest_operand64 =
+| R of register64
+| O of (int * register64) (* offset *)
+
 type register =
 | R32 of register32
 | R64 of register64
@@ -32,7 +36,7 @@ type t =
 | Globl of string
 | Label of string
 | Movl of (operand32 * register32)
-| Movq of (operand64 * register64)
+| Movq of (operand64 * dest_operand64)
 | Ret
 | Neg of register32
 | Not of register32
