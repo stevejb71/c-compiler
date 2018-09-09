@@ -18,7 +18,10 @@ Stage 4
 Relational operators: &&, ||, ==, !=, <=, >=, <, >
 
 Stage 5
-In progress
+Variables and assignment.
+
+Stage 6
+In progress.
 
 ```
 ./compile.sh tests/stage_1/valid/newlines.c
