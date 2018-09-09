@@ -149,6 +149,12 @@ let rec codegen_stmts cg = function
     | Some e -> Error e
 )
 
+let has_return =
+    List.exists ~f:(function
+    | Return _ -> true
+    | _ -> false
+    )
+
 let codegen_fundef emitter {name; body} =
   let variables: (string, int) Hashtbl.t = Hashtbl.create (module String) in
   emitter (Globl name);
@@ -158,6 +164,8 @@ let codegen_fundef emitter {name; body} =
   emitter (Movq (R Rsp,R Rbp));
   let stack_index = ref 0 in
   let result = codegen_stmts (codegen_stmt emitter variables stack_index) body in
+  if String.(name = "main") && not (has_return body)
+  then emitter (Movl (I 0, Eax));
   (* Function epilogue *)
   emitter (Movq (R Rbp,R Rsp));
   emitter (Pop Rbp);
