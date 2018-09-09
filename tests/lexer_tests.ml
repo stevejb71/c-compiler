@@ -40,7 +40,7 @@ let lexer_general_tests = [
   "lexes int8; as IDENTIFIER + INT" >::
     assert_ok [IDENTIFIER "int"; INT_LITERAL 8] (lex "int8");
   "reports an error on failing to lex " >::
-    assert_error "No lexer token matching \":le\" at position 7" (lex "   doub:le");
+    assert_error "No lexer token matching \"#le\" at position 7" (lex "   doub#le");
   "lexes addition, multiplication, and division tokens" >::
     assert_ok [ADDITION; MULTIPLICATION; DIVISION] (lex "+ * /");
   "lexes stage 4 tokens" >::
@@ -49,6 +49,12 @@ let lexer_general_tests = [
       (lex "&& || == < > <= >= !=");
   "lexes assignment" >::
     assert_ok [ASSIGNMENT] (lex "=");
+  "lexes if statement" >::
+    assert_ok [KEYWORD_IF; OPEN_ROUND; IDENTIFIER "x"; EQUAL; INT_LITERAL 5; CLOSE_ROUND; INT_LITERAL 7] (lex "if (x == 5) 7");
+  "lexes if-else statement" >::
+    assert_ok [KEYWORD_IF; OPEN_ROUND; IDENTIFIER "x"; EQUAL; INT_LITERAL 5; CLOSE_ROUND; INT_LITERAL 7; KEYWORD_ELSE; INT_LITERAL 8] (lex "if (x == 5) 7 else 8");
+  "lexes ternary expression" >::
+    assert_ok [OPEN_ROUND; IDENTIFIER "x"; EQUAL; INT_LITERAL 5; CLOSE_ROUND; QUESTION_MARK; INT_LITERAL 4; COLON; INT_LITERAL 9] (lex "(x == 5) ? 4 : 9");
 ]
 
 let lexer_file_tests = [

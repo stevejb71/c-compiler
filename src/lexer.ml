@@ -45,6 +45,10 @@ let token_regexs: (Re.re * token_maker) list = compile_tokens [
   "<", one LESS_THAN;
   ">=", one GREATER_THAN_OR_EQUAL;
   ">", one GREATER_THAN;
+  "if", one KEYWORD_IF;
+  "else", one KEYWORD_ELSE;
+  "\\?", one QUESTION_MARK;
+  ":", one COLON;
   "int(\\s+)", one KEYWORD_INT;
   "return;", (fun _ _ _ -> Ok [KEYWORD_RETURN; SEMICOLON]);
   "return(\\s+)", one KEYWORD_RETURN;
