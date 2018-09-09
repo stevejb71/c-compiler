@@ -25,6 +25,10 @@ type t =
   | GREATER_THAN
   | GREATER_THAN_OR_EQUAL
   | ASSIGNMENT
+  | KEYWORD_IF
+  | KEYWORD_ELSE
+  | QUESTION_MARK
+  | COLON
 
 let print_token = function
 | OPEN_CURLY -> "<OPEN_CURLY>"
@@ -51,6 +55,10 @@ let print_token = function
 | GREATER_THAN -> "<GREATER_THAN>"
 | GREATER_THAN_OR_EQUAL -> "<GREATER_THAN_OR_EQUAL>"
 | ASSIGNMENT -> "<ASSIGNMENT>"
+| KEYWORD_IF -> "<KEYWORD_IF>"
+| KEYWORD_ELSE -> "<KEYWORD_ELSE>"
+| QUESTION_MARK -> "<QUESTION_MARK>"
+| COLON -> "<COLON>"
   
 let eq (t1: t) (t2: t) = match t1, t2 with
 | OPEN_CURLY, OPEN_CURLY -> true
@@ -76,6 +84,10 @@ let eq (t1: t) (t2: t) = match t1, t2 with
 | GREATER_THAN, GREATER_THAN -> true
 | GREATER_THAN_OR_EQUAL, GREATER_THAN_OR_EQUAL -> true
 | ASSIGNMENT, ASSIGNMENT -> true
+| KEYWORD_IF, KEYWORD_IF -> true
+| KEYWORD_ELSE, KEYWORD_ELSE -> true
+| QUESTION_MARK, QUESTION_MARK -> true
+| COLON, COLON -> true
 | _ -> false
 
 let is_unary_op = function
