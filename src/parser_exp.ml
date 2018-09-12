@@ -101,5 +101,5 @@ and parse_factor: exp tokens_parser = fun tokens ->
           (tokens, Assign (var, e))
       | _ -> Ok (tokens, Var var)
     end
-  | Some _ -> Error "parser error"
-  | _ -> Error "no more tokens"
+  | Some t -> Error (Printf.sprintf "parser error on %s" (print_token t))
+  | None -> Error "no more tokens in parse_factor"

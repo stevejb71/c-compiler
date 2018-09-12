@@ -12,10 +12,8 @@ let assert_ok exp got _ctxt =
   let got = Result.ok_or_failwith got in
   assert_equal (Ast.show_program exp) (Ast.show_program got) ~printer:Fn.id
 
-let assert_ok_stmt stmt got _ctxt = 
-  let (remaining, got) = Result.ok_or_failwith got in
-  assert_bool "not all tokens parsed" (List.is_empty remaining);
-  match stmt, got with
+let rec assert_equal_stmts exp got = 
+  match exp, got with
   | Declare {name=n1; initial_value=e1}, Declare {name=n2; initial_value=e2} -> begin
       assert_equal n1 n2 ~printer:Fn.id; 
       match e1, e2 with
@@ -25,8 +23,21 @@ let assert_ok_stmt stmt got _ctxt =
     end
   | Exp e1, Exp e2 -> assert_equal_exps e1 e2;
   | Return e1, Return e2 -> assert_equal_exps e1 e2;
-  | _ -> failwith "laters"
-
+  | Conditional (c1,t1,f1), Conditional (c2,t2,f2) -> begin
+      assert_equal_exps c1 c2;
+      assert_equal_stmts t1 t2;
+      match f1,f2 with
+      | Some f1,Some f2 -> assert_equal_stmts f1 f2;
+      | None,None -> ()
+      | _ -> failwith "mismatch on false branches";
+    end
+  | _ -> failwith "either no match or missing cases!"
+  
+let assert_ok_stmt stmt got _ctxt = 
+  let (remaining, got) = Result.ok_or_failwith got in
+  assert_bool "not all tokens parsed" (List.is_empty remaining);
+  assert_equal_stmts stmt got
+    
 let assert_error (exp: string) (got: ('a, string) Result.t) _ctxt = 
   match got with
   | Ok _ -> failwith "Was expecting a failure"
@@ -59,11 +70,28 @@ let statement_tests = [
     assert_ok_stmt (Declare {name="x"; initial_value=Some (Const 10)}) (parse_stmt [KEYWORD_INT; IDENTIFIER "x"; ASSIGNMENT; INT_LITERAL 10; SEMICOLON]);
   "a standalone expression is a statement" >::
     assert_ok_stmt (Exp (Addition (Const 2, Const 4))) (parse_stmt [INT_LITERAL 2; ADDITION; INT_LITERAL 4; SEMICOLON]);
+  "can parse an if statement without else" >:: (
+    let condition = Const 10 in
+    let true_branch = Exp (Assign ("x", Const 11)) in
+    let tokens = [KEYWORD_IF; OPEN_ROUND; INT_LITERAL 10; CLOSE_ROUND; IDENTIFIER "x"; ASSIGNMENT; INT_LITERAL 11; SEMICOLON;] in
+    assert_ok_stmt (Conditional (condition, true_branch, None)) (parse_stmt tokens);
+  );
+  "can parse an if statement with else branch" >:: (
+    let condition = Const 10 in
+    let true_branch = Exp (Assign ("x", Const 11)) in
+    let false_branch = Exp (Assign ("y", Const 8)) in
+    let tokens = [KEYWORD_IF; OPEN_ROUND; INT_LITERAL 10; CLOSE_ROUND; 
+                    IDENTIFIER "x"; ASSIGNMENT; INT_LITERAL 11; SEMICOLON;
+                  KEYWORD_ELSE; 
+                    IDENTIFIER "y"; ASSIGNMENT; INT_LITERAL 8; SEMICOLON;
+                 ] in
+    assert_ok_stmt (Conditional (condition, true_branch, Some false_branch)) (parse_stmt tokens);
+  );
 ]
   
 let general_parser_tests = [
   "empty list is an error" >::
-    assert_error "no more tokens" (parse []);
+    assert_error "was expecting <KEYWORD_INT> but no more tokens" (parse []);
   "expects a function name after int on its own" >::
     assert_error "was expecting function name but ran out of tokens" (parse [KEYWORD_INT]);
   "parses the stage 1 C function" >::

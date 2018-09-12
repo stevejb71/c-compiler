@@ -95,5 +95,5 @@ let is_unary_op = function
 | _ -> false
 
 let starts_statement = function
-| KEYWORD_RETURN | KEYWORD_INT | IDENTIFIER _ | INT_LITERAL _ -> true
+| KEYWORD_RETURN | KEYWORD_INT | IDENTIFIER _ | INT_LITERAL _ | KEYWORD_IF -> true
 | _ -> false

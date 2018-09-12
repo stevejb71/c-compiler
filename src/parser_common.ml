@@ -16,6 +16,6 @@ let parse_token (expected: Tokens.t) (tokens: Tokens.t list): (Tokens.t list, st
   match List.hd tokens with
   | Some t when Tokens.eq t expected -> Ok (List.tl_exn tokens)
   | Some t -> Error (Printf.sprintf "was expecting %s but got %s" (print_token expected) (print_token t))
-  | None -> Error "no more tokens"
+  | None -> Error (Printf.sprintf "was expecting %s but no more tokens" (print_token expected))
       
       

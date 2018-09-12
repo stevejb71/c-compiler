@@ -2,8 +2,10 @@
 Grammar accepted by this parser (stage 4):
 
 <program> ::= <function>
-<function> ::= "int" <id> "(" ")" "{" { <statement> } "}"
-<statement> ::= "return" <exp> ";" | <exp> ";" | int <id> = <exp>;
+<statement> ::= "return" <exp> ";" | <exp> ";" | "if" "(" <exp> ")" <statement> [ "else" <statement> ]
+<declaration> ::= "int" <id> [ = <exp> ] ";"
+<block-item> ::= <statement> | <declaration>
+<function> ::= "int" <id> "(" ")" "{" { <block-item> } "}"
 <exp> ::= <logical-and-exp> { "||" <logical-and-exp> }
 <logical-and-exp> ::= <equality-exp> { "&&" <equality-exp> }
 <equality-exp> ::= <relational-exp> { ("!=" | "==") <relational-exp> }

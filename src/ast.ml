@@ -24,6 +24,7 @@ type stmt =
 | Return of exp
 | Declare of {name: string; initial_value: exp option}
 | Exp of exp
+| Conditional of (exp * stmt * stmt option)
 
 type fundef = {
   name: string;
