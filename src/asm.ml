@@ -55,3 +55,5 @@ type t =
 | IDivl of (register32 * register32)
 | Andb of (register8 * register8)
 | Orl of (register32 * register32)
+| Je of string
+| Jmp of string
