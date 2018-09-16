@@ -1,0 +1,1 @@
+val generate_label: string -> string
