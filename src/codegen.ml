@@ -1,6 +1,7 @@
 open Base
 open Asm
 open Ast
+open Labels
 
 type emitter = (Asm.t -> unit)
 
@@ -121,7 +122,7 @@ let rec codegen_exp emitter variables e =
         end
     end
 
-let codegen_stmt emitter variables stack_index = function
+let rec codegen_stmt emitter variables stack_index = function
 | Return e -> 
     ignore @@ codegen_exp emitter variables e;
     None
@@ -140,7 +141,23 @@ let codegen_stmt emitter variables stack_index = function
     end
 | Exp e -> 
     codegen_exp emitter variables e
-
+| Conditional (cond, if_true, if_false) ->
+    let if_false_label = generate_label "if_false" in
+    let post_conditional_label = generate_label "post_conditional" in
+    ignore @@ codegen_exp emitter variables cond;
+    emitter (Cmpl ((I 0),Eax));
+    emitter (Je if_false_label);
+    ignore @@ codegen_stmt emitter variables stack_index if_true;
+    match if_false with
+    | Some if_false ->
+        emitter (Jmp post_conditional_label);
+        emitter (Label if_false_label);
+        ignore @@ codegen_stmt emitter variables stack_index if_false;
+        emitter (Label post_conditional_label);
+        None
+    | None ->
+        None
+;;
 let rec codegen_stmts cg = function 
 | [] -> Ok ()
 | (s :: rest) -> (
