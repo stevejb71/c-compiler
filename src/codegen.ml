@@ -157,6 +157,7 @@ let rec codegen_stmt emitter variables stack_index = function
         emitter (Label post_conditional_label);
         None
     | None ->
+        emitter (Label if_false_label);
         None
 ;;
 let rec codegen_stmts cg = function 
