@@ -56,13 +56,13 @@ let rec show_exp e =
   | GreaterThanOrEqual (e1, e2) -> show_binary_exp ">=" e1 e2
   | Assign (n, e) -> Printf.sprintf "%s = %s" n (show_exp e)
   | Var n -> n
+and show_stmt = function
+| Return e -> Printf.sprintf "Return %s" (show_exp e)
+| Declare {name; initial_value=None} -> Printf.sprintf "int %s" name
+| Declare {name; initial_value=Some body} -> Printf.sprintf "int %s = %s" name (show_exp body)
+| Exp e -> show_exp e
+| Conditional (c, t ,None) -> Printf.sprintf "if %s then %s" (show_exp c) (show_stmt t)
+| Conditional (c, t ,Some f) -> Printf.sprintf "if %s then %s else %s" (show_exp c) (show_stmt t) (show_stmt f)
 
 let show_program ({name; body}: program): string = 
-  let show_stmt = function
-  | Return exp -> Printf.sprintf "return %s" (show_exp exp)
-  | Declare {name; initial_value} -> 
-      let init_string = Option.value_map initial_value ~default:"" ~f:(fun e -> " = " ^ show_exp e) in
-      Printf.sprintf "int %s%s" name init_string
-  | _ -> failwith "laters"
-  in
   Printf.sprintf "%s {%s}" name (List.map ~f:show_stmt body |> String.concat ~sep:"\n")
