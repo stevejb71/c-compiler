@@ -21,7 +21,9 @@ Stage 5
 Variables and assignment.
 
 Stage 6
-In progress.
+If statements supported.
+Ternary operator in progress.
+
 
 ```
 ./compile.sh tests/stage_1/valid/newlines.c
