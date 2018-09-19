@@ -5,8 +5,11 @@ let rec leaf_statements_contain_return = function
 | Return _ -> true
 | Conditional (_, t, f) -> 
     leaf_statements_contain_return t || Option.value_map f ~default:false ~f:leaf_statements_contain_return
-| Declare _ -> false
 | Exp _ -> false
+
+let leaf_block_item_contain_return = function
+| Declare _ -> false
+| Statement stmt -> leaf_statements_contain_return stmt
 
 (* Not fully implemented! *)
 let generate_return fundef =
@@ -14,7 +17,7 @@ let generate_return fundef =
   if String.(name <> "main")
   then fundef
   else 
-    if List.exists body ~f:leaf_statements_contain_return
+    if List.exists body ~f:leaf_block_item_contain_return
     then fundef
     else 
-      {name; body = body @ [Return (Const 0)]}
+      {name; body = body @ [Statement (Return (Const 0))]}

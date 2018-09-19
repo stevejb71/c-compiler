@@ -94,6 +94,6 @@ let is_unary_op = function
 | NEGATION | LOGICAL_NEGATION | COMPLEMENT -> true
 | _ -> false
 
-let starts_statement = function
+let starts_statement_or_block_item = function
 | KEYWORD_RETURN | KEYWORD_INT | IDENTIFIER _ | INT_LITERAL _ | KEYWORD_IF -> true
 | _ -> false

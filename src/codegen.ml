@@ -127,19 +127,6 @@ let rec codegen_stmt emitter variables stack_index = function
 | Return e -> 
     ignore @@ codegen_exp emitter variables e;
     None
-| Declare {name; initial_value} ->  
-      let write_declaration e =
-        ignore @@ codegen_exp emitter variables e;
-        emitter (Movq (R Rax, O (!stack_index, Rbp)));
-        emitter (Push Rax) in
-    if Option.is_some (Hashtbl.find variables name) 
-    then Some (Printf.sprintf "Redeclaration of variable '%s'" name)
-    else begin
-      Option.iter initial_value ~f:write_declaration;
-      Hashtbl.set variables ~key:name ~data:!stack_index;
-      stack_index := !stack_index - 8;
-      None
-    end
 | Exp e -> 
     codegen_exp emitter variables e
 | Conditional (cond, if_true, if_false) ->
@@ -159,12 +146,29 @@ let rec codegen_stmt emitter variables stack_index = function
     | None ->
         emitter (Label if_false_label);
         None
-;;
-let rec codegen_stmts cg = function 
+
+let codegen_block_item emitter variables stack_index = function
+| Declare {name; initial_value} ->  
+      let write_declaration e =
+        ignore @@ codegen_exp emitter variables e;
+        emitter (Movq (R Rax, O (!stack_index, Rbp)));
+        emitter (Push Rax) in
+    if Option.is_some (Hashtbl.find variables name) 
+    then Some (Printf.sprintf "Redeclaration of variable '%s'" name)
+    else begin
+      Option.iter initial_value ~f:write_declaration;
+      Hashtbl.set variables ~key:name ~data:!stack_index;
+      stack_index := !stack_index - 8;
+      None
+    end
+| Statement stmt ->
+    codegen_stmt emitter variables stack_index stmt 
+
+let rec codegen_block_items cg = function 
 | [] -> Ok ()
 | (s :: rest) -> (
     match cg s with
-    | None -> codegen_stmts cg rest
+    | None -> codegen_block_items cg rest
     | Some e -> Error e
 )
 
@@ -177,7 +181,7 @@ let codegen_fundef emitter fundef =
   emitter (Push Rbp);
   emitter (Movq (R Rsp,R Rbp));
   let stack_index = ref 0 in
-  let result = codegen_stmts (codegen_stmt emitter variables stack_index) body in
+  let result = codegen_block_items (codegen_block_item emitter variables stack_index) body in
   (* Function epilogue *)
   emitter (Movq (R Rbp,R Rsp));
   emitter (Pop Rbp);

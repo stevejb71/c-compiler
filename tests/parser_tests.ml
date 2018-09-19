@@ -14,13 +14,6 @@ let assert_ok exp got _ctxt =
 
 let rec assert_equal_stmts exp got = 
   match exp, got with
-  | Declare {name=n1; initial_value=e1}, Declare {name=n2; initial_value=e2} -> begin
-      assert_equal n1 n2 ~printer:Fn.id; 
-      match e1, e2 with
-      | Some e1, Some e2 -> assert_equal_exps e1 e2;
-      | None, None -> ()
-      | _ -> failwith "no match"
-    end
   | Exp e1, Exp e2 -> assert_equal_exps e1 e2;
   | Return e1, Return e2 -> assert_equal_exps e1 e2;
   | Conditional (c1,t1,f1), Conditional (c2,t2,f2) -> begin
@@ -33,11 +26,29 @@ let rec assert_equal_stmts exp got =
     end
   | _ -> failwith "either no match or missing cases!"
   
+let assert_equal_block_items exp got = 
+  match exp, got with
+  | Declare {name=n1; initial_value=e1}, Declare {name=n2; initial_value=e2} -> begin
+      assert_equal n1 n2 ~printer:Fn.id; 
+      match e1, e2 with
+      | Some e1, Some e2 -> assert_equal_exps e1 e2;
+      | None, None -> ()
+      | _ -> failwith "no match"
+    end
+  | Statement s1, Statement s2 -> 
+      assert_equal_stmts s1 s2
+  | _ -> failwith "either no match or missing cases!"
+
 let assert_ok_stmt stmt got _ctxt = 
   let (remaining, got) = Result.ok_or_failwith got in
   assert_bool "not all tokens parsed" (List.is_empty remaining);
   assert_equal_stmts stmt got
     
+let assert_ok_block_item block_item got _ctxt = 
+  let (remaining, got) = Result.ok_or_failwith got in
+  assert_bool "not all tokens parsed" (List.is_empty remaining);
+  assert_equal_block_items block_item got
+
 let assert_error (exp: string) (got: ('a, string) Result.t) _ctxt = 
   match got with
   | Ok _ -> failwith "Was expecting a failure"
@@ -65,9 +76,9 @@ let assert_fails_to_parse_files_in_folder (foldername: string) ?filter:(filter=(
     
 let statement_tests = [
   "a statement can be a declaration without initializer" >::
-    assert_ok_stmt (Declare {name="x"; initial_value=None}) (parse_stmt [KEYWORD_INT; IDENTIFIER "x"; SEMICOLON;]);
+    assert_ok_block_item (Declare {name="x"; initial_value=None}) (parse_block_item [KEYWORD_INT; IDENTIFIER "x"; SEMICOLON;]);
   "a statement can be a declaration with an initializer" >::
-    assert_ok_stmt (Declare {name="x"; initial_value=Some (Const 10)}) (parse_stmt [KEYWORD_INT; IDENTIFIER "x"; ASSIGNMENT; INT_LITERAL 10; SEMICOLON]);
+    assert_ok_block_item (Declare {name="x"; initial_value=Some (Const 10)}) (parse_block_item [KEYWORD_INT; IDENTIFIER "x"; ASSIGNMENT; INT_LITERAL 10; SEMICOLON]);
   "a standalone expression is a statement" >::
     assert_ok_stmt (Exp (Addition (Const 2, Const 4))) (parse_stmt [INT_LITERAL 2; ADDITION; INT_LITERAL 4; SEMICOLON]);
   "can parse an if statement without else" >:: (
@@ -95,13 +106,13 @@ let general_parser_tests = [
   "expects a function name after int on its own" >::
     assert_error "was expecting function name but ran out of tokens" (parse [KEYWORD_INT]);
   "parses the stage 1 C function" >::
-    assert_ok {name="main"; body=[Return (Const 52)]} @@ parse [KEYWORD_INT; IDENTIFIER "main"; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 52; SEMICOLON; CLOSE_CURLY];
+    assert_ok {name="main"; body=[Statement (Return (Const 52))]} @@ parse [KEYWORD_INT; IDENTIFIER "main"; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 52; SEMICOLON; CLOSE_CURLY];
   "spots an error if stage 1 C function has badly placed brackets" >::
     assert_error "was expecting <OPEN_ROUND> but got <OPEN_CURLY>" @@ parse [KEYWORD_INT; IDENTIFIER "main"; OPEN_CURLY; CLOSE_CURLY; OPEN_CURLY; KEYWORD_RETURN; INT_LITERAL 3; SEMICOLON; CLOSE_CURLY];
   "a function body can be empty" >::
     assert_ok {name="main"; body=[]} @@ parse [KEYWORD_INT; IDENTIFIER "main"; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; CLOSE_CURLY];
   "a function body can have two statements" >::
-    assert_ok {name="main"; body=[Return (Const 1); Return (Const 2)]} @@ parse [KEYWORD_INT; IDENTIFIER "main"; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; 
+    assert_ok {name="main"; body=[Statement (Return (Const 1)); Statement (Return (Const 2))]} @@ parse [KEYWORD_INT; IDENTIFIER "main"; OPEN_ROUND; CLOSE_ROUND; OPEN_CURLY; 
       KEYWORD_RETURN; INT_LITERAL 1; SEMICOLON; KEYWORD_RETURN; INT_LITERAL 2; SEMICOLON; CLOSE_CURLY];
 ]
 
@@ -128,6 +139,10 @@ let parser_file_tests = [
     assert_can_parse_files_in_folder "stage_5/invalid" ~filter:(String.is_prefix ~prefix:"syntax_err" |> Fn.non);
   "lexes and parses invalid stage 5 C files" >::
     assert_fails_to_parse_files_in_folder "stage_5/invalid" ~filter:(String.is_prefix ~prefix:"syntax_err");
+  "lexes and parses valid stage 6 C files containing statements" >::
+    assert_can_parse_files_in_folder "stage_6/valid/statement";
+  "lexes but does not parse invalid stage 6 C files containing statements" >::
+    assert_fails_to_parse_files_in_folder "stage_6/invalid/statement";
 ]
 
 let parser_tests = List.concat [general_parser_tests; parser_file_tests; statement_tests]

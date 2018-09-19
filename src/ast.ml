@@ -22,13 +22,16 @@ type exp =
 
 type stmt =
 | Return of exp
-| Declare of {name: string; initial_value: exp option}
 | Exp of exp
 | Conditional of (exp * stmt * stmt option)
 
+type block_item =
+| Statement of stmt
+| Declare of {name: string; initial_value: exp option}
+
 type fundef = {
   name: string;
-  body: stmt list;
+  body: block_item list;
 }
 
 type program = fundef
@@ -58,11 +61,14 @@ let rec show_exp e =
   | Var n -> n
 and show_stmt = function
 | Return e -> Printf.sprintf "Return %s" (show_exp e)
-| Declare {name; initial_value=None} -> Printf.sprintf "int %s" name
-| Declare {name; initial_value=Some body} -> Printf.sprintf "int %s = %s" name (show_exp body)
 | Exp e -> show_exp e
 | Conditional (c, t ,None) -> Printf.sprintf "if %s then %s" (show_exp c) (show_stmt t)
 | Conditional (c, t ,Some f) -> Printf.sprintf "if %s then %s else %s" (show_exp c) (show_stmt t) (show_stmt f)
 
+let show_block_item = function
+| Declare {name; initial_value=None} -> Printf.sprintf "int %s" name
+| Declare {name; initial_value=Some body} -> Printf.sprintf "int %s = %s" name (show_exp body)
+| Statement stmt -> show_stmt stmt
+
 let show_program ({name; body}: program): string = 
-  Printf.sprintf "%s {%s}" name (List.map ~f:show_stmt body |> String.concat ~sep:"\n")
+  Printf.sprintf "%s {%s}" name (List.map ~f:show_block_item body |> String.concat ~sep:"\n")

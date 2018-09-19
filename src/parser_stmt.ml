@@ -11,7 +11,7 @@ let parse_return: stmt tokens_parser = fun tokens ->
   parse_exp >>| fun (tokens, exp) ->
   (tokens, Return exp)
 
-let parse_declare: stmt tokens_parser = fun tokens ->
+let parse_declare: block_item tokens_parser = fun tokens ->
   let open Result.Monad_infix in
   tokens |>
   parse_token KEYWORD_INT >>=
@@ -34,9 +34,9 @@ let rec parse_stmt: stmt tokens_parser = fun tokens ->
       parse_return tokens >>= fun (tokens, ret) ->
       parse_token SEMICOLON tokens >>| fun tokens ->
       (tokens, ret)
-  | Some KEYWORD_INT ->
+  (* | Some KEYWORD_INT ->
       parse_declare tokens >>| fun (tokens, ret) ->
-      (tokens, ret)
+      (tokens, ret) *)
   | Some KEYWORD_IF -> 
       let tokens = List.tl_exn tokens in
       parse_token OPEN_ROUND tokens >>= fun tokens ->
@@ -56,8 +56,8 @@ let rec parse_stmt: stmt tokens_parser = fun tokens ->
       parse_token SEMICOLON tokens >>| fun tokens ->
       (tokens, Exp e)
 
-let parse_block_item: stmt tokens_parser = fun tokens -> 
+let parse_block_item: block_item tokens_parser = fun tokens -> 
   let stmt = parse_stmt tokens in
   if Result.is_ok stmt
-  then stmt
+  then stmt |> Result.map ~f:(fun (ts, stmt) -> (ts, Statement stmt))
   else parse_declare tokens

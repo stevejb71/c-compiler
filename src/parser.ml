@@ -5,14 +5,14 @@ open Parser_common
 open Parser_exp
 open Parser_stmt
 
-let rec parse_block_items: stmt list tokens_parser = fun tokens -> 
+let rec parse_block_items: block_item list tokens_parser = fun tokens -> 
   let open Result.Monad_infix in
   match List.hd tokens with
   | None -> Ok (tokens, [])
-  | Some t when starts_statement t ->
-      parse_block_item tokens >>= fun (tokens, stmt) ->
-      parse_block_items tokens >>| fun (tokens, stmts) ->
-      (tokens, stmt :: stmts)
+  | Some t when starts_statement_or_block_item t ->
+      parse_block_item tokens >>= fun (tokens, block_item) ->
+      parse_block_items tokens >>| fun (tokens, block_items) ->
+      (tokens, block_item :: block_items)
   | Some _ -> Ok (tokens, [])
 
 let parse_fundef: fundef tokens_parser = fun tokens -> 
