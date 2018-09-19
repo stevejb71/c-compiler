@@ -43,4 +43,6 @@ let parser_exp_tests = [
     assert_ok_exp (Assign ("X", Const 5)) @@ parse_exp [IDENTIFIER "X"; ASSIGNMENT; INT_LITERAL 5;];
   "parse_exp on a variable" >::
     assert_ok_exp (Var "X") @@ parse_exp [IDENTIFIER "X";];
+  "parse_exp on a ternary" >::
+    assert_ok_exp (ConditionalExp ((Const 5), (Const 6), (Const 7))) @@ parse_exp [INT_LITERAL 5; QUESTION_MARK; INT_LITERAL 6; COLON; INT_LITERAL 7];
 ]

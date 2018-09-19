@@ -143,6 +143,8 @@ let parser_file_tests = [
     assert_can_parse_files_in_folder "stage_6/valid/statement";
   "lexes but does not parse invalid stage 6 C files containing statements" >::
     assert_fails_to_parse_files_in_folder "stage_6/invalid/statement";
+  "lexes and parses valid stage 6 C files containing expressions" >::
+    assert_can_parse_files_in_folder "stage_6/valid/expression";
 ]
 
 let parser_tests = List.concat [general_parser_tests; parser_file_tests; statement_tests]

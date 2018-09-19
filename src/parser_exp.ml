@@ -34,6 +34,34 @@ let parse_many parse_exp token make_ast: exp tokens_parser = fun tokens ->
     tokens
 
 let rec parse_exp: exp tokens_parser = fun tokens ->
+  let open Result.Monad_infix in
+  match List.hd tokens with
+  | Some (IDENTIFIER var) ->
+      let parsed_assignment = 
+        let tokens = List.tl_exn tokens in
+        parse_token ASSIGNMENT tokens >>= fun tokens ->
+        parse_exp tokens >>| fun (tokens, rhs) ->
+        (tokens, Assign (var, rhs)) in
+      if Result.is_ok parsed_assignment
+      then parsed_assignment
+      else parse_conditional_exp tokens
+  | Some _ -> parse_conditional_exp tokens
+  | None -> Error "no more tokens"
+
+and parse_conditional_exp: exp tokens_parser = fun tokens ->
+  let open Result.Monad_infix in
+  parse_logical_or_exp tokens >>= fun (tokens, cond_exp) -> (
+  match List.hd tokens with
+  | Some QUESTION_MARK ->
+      parse_token QUESTION_MARK tokens >>= 
+      parse_exp >>= fun (tokens, if_true) ->
+      parse_token COLON tokens >>= 
+      parse_conditional_exp >>| fun (tokens, if_false) ->
+      (tokens, ConditionalExp (cond_exp, if_true,if_false))
+  | _ -> Ok (tokens, cond_exp)
+  )
+
+and parse_logical_or_exp: exp tokens_parser = fun tokens ->
   parse_many 
     parse_logical_and_exp 
     LOGICAL_OR 
@@ -94,12 +122,7 @@ and parse_factor: exp tokens_parser = fun tokens ->
       Ok (List.tl_exn tokens, Const n)
   | Some (IDENTIFIER var) -> begin
       let tokens = List.tl_exn tokens in
-      match List.hd tokens with
-      | Some ASSIGNMENT ->
-          let tokens = List.tl_exn tokens in
-          parse_exp tokens >>| fun (tokens, e) ->
-          (tokens, Assign (var, e))
-      | _ -> Ok (tokens, Var var)
+      Ok (tokens, Var var)
     end
   | Some t -> Error (Printf.sprintf "parser error on %s" (print_token t))
   | None -> Error "no more tokens in parse_factor"

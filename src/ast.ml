@@ -19,6 +19,7 @@ type exp =
 | GreaterThanOrEqual of exp * exp
 | Assign of string * exp
 | Var of string
+| ConditionalExp of (exp * exp * exp)
 
 type stmt =
 | Return of exp
@@ -59,6 +60,7 @@ let rec show_exp e =
   | GreaterThanOrEqual (e1, e2) -> show_binary_exp ">=" e1 e2
   | Assign (n, e) -> Printf.sprintf "%s = %s" n (show_exp e)
   | Var n -> n
+  | ConditionalExp (c, t, f) -> Printf.sprintf "if %s then %s else %s" (show_exp c) (show_exp t) (show_exp f)
 and show_stmt = function
 | Return e -> Printf.sprintf "Return %s" (show_exp e)
 | Exp e -> show_exp e

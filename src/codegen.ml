@@ -122,6 +122,19 @@ let rec codegen_exp emitter variables e =
           None
         end
     end
+  | ConditionalExp (cond, if_true, if_false) -> begin
+        let if_false_label = generate_label "if_false" in
+        let post_conditional_label = generate_label "post_conditional" in
+        ignore @@ codegen_exp emitter variables cond;
+        emitter (Cmpl ((I 0),Eax));
+        emitter (Je if_false_label);
+        ignore @@ codegen_exp emitter variables if_true;
+        emitter (Jmp post_conditional_label);
+        emitter (Label if_false_label);
+        ignore @@ codegen_exp emitter variables if_false;
+        emitter (Label post_conditional_label);
+        None
+    end
 
 let rec codegen_stmt emitter variables stack_index = function
 | Return e -> 
