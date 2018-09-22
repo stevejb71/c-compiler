@@ -21,8 +21,10 @@ Stage 5
 Variables and assignment.
 
 Stage 6
-If statements supported.
-Ternary operator in progress.
+If statements and ternary (expression) operator.
+
+Stage 7
+In progress.
 
 
 ```
