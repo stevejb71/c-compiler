@@ -4,3 +4,6 @@
   (wrapped false)
   (flags)
 )
+
+(ocamllex
+  (modules lexer_generator))

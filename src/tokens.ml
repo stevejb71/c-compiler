@@ -29,6 +29,7 @@ type t =
   | KEYWORD_ELSE
   | QUESTION_MARK
   | COLON
+  | EOF
 
 let print_token = function
 | OPEN_CURLY -> "<OPEN_CURLY>"
@@ -59,6 +60,7 @@ let print_token = function
 | KEYWORD_ELSE -> "<KEYWORD_ELSE>"
 | QUESTION_MARK -> "<QUESTION_MARK>"
 | COLON -> "<COLON>"
+| EOF -> "<EOF>"
   
 let eq (t1: t) (t2: t) = match t1, t2 with
 | OPEN_CURLY, OPEN_CURLY -> true
