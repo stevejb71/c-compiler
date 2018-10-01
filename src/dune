@@ -6,4 +6,12 @@
 )
 
 (ocamllex
-  (modules lexer_generator))
+  (modules lexer_generator)
+)
+
+(rule
+  (targets parser2.ml parser2.mli)
+  (deps    parser2.mly)
+  (action  (chdir %{workspace_root}
+            (run %{bin:menhir} %{deps})))
+)
